@@ -1,0 +1,8 @@
+NOTES
+
+reports starting `0x02, 0xb0` appear to be for the buttons?
+
+reports starting `0x02, 0xb1` appear to be for the oled
+
+reports starting `0x02, 0xb4` appear to be for the wheel (and sleep?)
+
