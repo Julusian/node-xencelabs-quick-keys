@@ -35,7 +35,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=12.18"
+    "node": ">=12.20"
   },
   "dependencies": {
     "@xencelabs-quick-keys/core": "0.0.1",
