@@ -1,5 +1,11 @@
-import { XenceQuickKeysDisplayBrightness } from '@xencelabs-quick-keys/core'
-import { requestXenceQuickKeys, XenceQuickKeysWeb, XenceQuickKeysOrientation } from '@xencelabs-quick-keys/webhid'
+import {
+	requestXenceQuickKeys,
+	XenceQuickKeysWeb,
+	XenceQuickKeysOrientation,
+	XenceQuickKeysDisplayBrightness,
+	WheelEvent,
+	XenceQuickKeysWheelSpeed,
+} from '@xencelabs-quick-keys/webhid'
 
 function appendLog(str: string) {
 	const logElm = document.getElementById('log')
@@ -11,35 +17,6 @@ function appendLog(str: string) {
 const consentButton = document.getElementById('consent-button')
 
 let device: XenceQuickKeysWeb | null = null
-// let currentDemo: Demo = new FillWhenPressedDemo()
-// async function demoChange() {
-// 	if (demoSelect) {
-// 		console.log(`Selected demo: ${demoSelect.value}`)
-// 		if (device) {
-// 			await currentDemo.stop(device)
-// 		}
-
-// 		switch (demoSelect.value) {
-// 			case 'rapid-fill':
-// 				currentDemo = new RapidFillDemo()
-// 				break
-// 			case 'dom':
-// 				currentDemo = new DomImageDemo()
-// 				break
-// 			case 'chase':
-// 				currentDemo = new ChaseDemo()
-// 				break
-// 			case 'fill-when-pressed':
-// 			default:
-// 				currentDemo = new FillWhenPressedDemo()
-// 				break
-// 		}
-
-// 		if (device) {
-// 			await currentDemo.start(device)
-// 		}
-// 	}
-// }
 
 async function updateLabels(): Promise<void> {
 	if (device) {
@@ -57,31 +34,54 @@ async function updateLabels(): Promise<void> {
 	}
 }
 
+async function updateColour(): Promise<void> {
+	if (device) {
+		const red = parseInt(document.querySelector<HTMLInputElement>('#red-range')?.value ?? '0')
+		const green = parseInt(document.querySelector<HTMLInputElement>('#green-range')?.value ?? '0')
+		const blue = parseInt(document.querySelector<HTMLInputElement>('#blue-range')?.value ?? '0')
+
+		await device.setWheelColor(red, green, blue)
+	}
+}
+
+let wheelCount = 0
+const wheelCounter = document.querySelector('#counter')
+
 async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
 	// appendLog(`Device opened. Serial: ${await device.getSerialNumber()} Firmware: ${await device.getFirmwareVersion()}`)
 
 	device.on('down', (key: number) => {
 		appendLog(`Key ${key} down`)
-		// currentDemo.keyDown(device, key).catch(console.error)
+		document.querySelector(`[data-id="${key}"]`)?.classList?.add('pressed')
 	})
 	device.on('up', (key: number) => {
 		appendLog(`Key ${key} up`)
-		// currentDemo.keyUp(device, key).catch(console.error)
+		document.querySelector(`[data-id="${key}"]`)?.classList?.remove('pressed')
+	})
+	device.on('wheel', (e: WheelEvent) => {
+		appendLog(`Wheel ${e} `)
+		switch (e) {
+			case WheelEvent.Left:
+				wheelCount--
+				break
+			case WheelEvent.Right:
+				wheelCount++
+				break
+		}
+		if (wheelCounter) wheelCounter.innerHTML = `${wheelCount}`
 	})
 
-	// await currentDemo.start(device)
+	wheelCount = 0
+	if (wheelCounter) wheelCounter.innerHTML = `${wheelCount}`
 
-	// Sample actions
-	// await device.setBrightness(70)
+	document.querySelectorAll<HTMLInputElement>('.textlabel').forEach((e) => e.classList.remove('pressed'))
 
-	// device.fillColor(2, 255, 0, 0)
-	// device.fillColor(12, 0, 0, 255)
-
+	await device.setSleepTimeout(5)
+	await device.setWheelSpeed(XenceQuickKeysWheelSpeed.Normal)
 	await device.setTextOrientation(XenceQuickKeysOrientation.Rotate0)
 	await device.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full)
 
-	await device.setWheelColor(255, 0, 0)
-	await device.setKeyText(1, 'hello')
+	await updateColour()
 	await updateLabels()
 }
 
@@ -96,13 +96,17 @@ if (consentButton) {
 	// 	console.log(devices)
 	// })
 
-	const brightnessRange = document.getElementById('brightness-range') as HTMLInputElement | undefined
-	if (brightnessRange) {
-		brightnessRange.addEventListener('input', (_e) => {
-			// const value = brightnessRange.value as any as number
-			// if (device) {
-			// 	device.setBrightness(value).catch(console.error)
-			// }
+	document.getElementById('red-range')?.addEventListener('input', updateColour)
+	document.getElementById('green-range')?.addEventListener('input', updateColour)
+	document.getElementById('blue-range')?.addEventListener('input', updateColour)
+
+	const speedRange = document.getElementById('speed-range') as HTMLInputElement | undefined
+	if (speedRange) {
+		speedRange.addEventListener('input', () => {
+			const speed = parseInt(speedRange.value) as any as XenceQuickKeysWheelSpeed
+			if (device) {
+				device.setWheelSpeed(6 - speed) // flip the number
+			}
 		})
 	}
 
@@ -127,6 +131,14 @@ if (consentButton) {
 			}
 		})
 	}
+
+	document.getElementById('overlay-show')?.addEventListener('click', () => {
+		const durationElm = document.getElementById('overlay-duration') as HTMLInputElement | undefined
+		const textElm = document.getElementById('overlay-text') as HTMLInputElement | undefined
+		if (device && durationElm && textElm) {
+			device.showOverlayText(parseInt(durationElm.value), textElm.value)
+		}
+	})
 
 	consentButton.addEventListener('click', async () => {
 		if (device) {

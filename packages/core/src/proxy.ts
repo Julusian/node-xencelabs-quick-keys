@@ -5,6 +5,7 @@ import {
 	XenceQuickKeysDisplayBrightness,
 	XenceQuickKeysEvents,
 	XenceQuickKeysOrientation,
+	XenceQuickKeysWheelSpeed,
 } from './types'
 
 /**
@@ -41,6 +42,18 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 
 	public async setDisplayBrightness(brightness: XenceQuickKeysDisplayBrightness): Promise<void> {
 		return this.device.setDisplayBrightness(brightness)
+	}
+
+	public async setWheelSpeed(speed: XenceQuickKeysWheelSpeed): Promise<void> {
+		return this.device.setWheelSpeed(speed)
+	}
+
+	public async setSleepTimeout(minutes: number): Promise<void> {
+		return this.device.setSleepTimeout(minutes)
+	}
+
+	public async showOverlayText(duration: number, text: string): Promise<void> {
+		return this.device.showOverlayText(duration, text)
 	}
 
 	/**

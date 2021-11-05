@@ -1,21 +1,27 @@
 <html>
 
 <head>
+	<style>
+		.pressed {
+			background-color: pink;
+		}
+
+		.btn {
+			border: 1px solid #000;
+			display: block;
+			width: 40px;
+			height: 40px;
+			text-align: center;
+		}
+
+	</style>
 </head>
 
 <body>
 	<h1>Xencelabs Quick Keys WebHID demo</h1>
 	<h3>Based on <a href="https://github.com/Julusian/node-xencelabs-quick-keys/">@xencelabs-quick-keys</a> <a
 			href="https://www.npmjs.com/package/@xencelabs-quick-keys/webhid">npm</a></h3>
-	<h3>
-		Getting started
-	</h3>
-	<p>Requires Chrome and either:</p>
-	<ul>
-		<li>Chrome v89+</li>
-		<li>Go to chrome://flags and enable "Experimental Web Platform features", then restart your
-			browser</li>
-	</ul>
+	<p>Requires Chrome v89+</p>
 	<h3>
 		Note: For linux, you need to ensure udev is setup with the correct device permissions for the hidraw driver.
 	</h3>
@@ -24,7 +30,17 @@
 	</p>
 
 	<p>
-		<input type="range" min="1" max="100" value="60" id="brightness-range" />
+		Wheel Red: <input type="range" min="0" max="255" value="255" id="red-range" />
+	</p>
+	<p>
+		Wheel Green: <input type="range" min="0" max="255" value="0" id="green-range" />
+	</p>
+	<p>
+		Wheel Blue: <input type="range" min="0" max="255" value="0" id="blue-range" />
+	</p>
+
+	<p>
+		Wheel Speed: <input type="range" min="1" max="5" value="3" id="speed-range" />
 	</p>
 
 	<p>
@@ -50,9 +66,12 @@
 	<p>
 		<table>
 			<tr>
-				<td colspan="4">Note: these are orientation for 0&#176;</td>
+				<td colspan="5">Note: these are orientation for 0&#176;</td>
 			</tr>
 			<tr>
+				<td rowspan="2">
+					<div class="btn" data-id="8"></div>
+				</td>
 				<td>
 					<input class="textlabel" value="one" data-id="0" />
 				</td>
@@ -64,6 +83,9 @@
 				</td>
 				<td>
 					<input class="textlabel" value="four" data-id="3" />
+				</td>
+				<td rowspan="2">
+					<div class="btn" id="counter" data-id="9">0</div>
 				</td>
 			</tr>
 			<tr>
@@ -81,6 +103,13 @@
 				</td>
 			</tr>
 		</table>
+	</p>
+
+	<p>
+		Overlay:
+		<input id="overlay-duration" type="number" min="0" max="255" value="2" />
+		<input id="overlay-text" type="text" value="This is an overlay!" />
+		<button id="overlay-show">Show</button>
 	</p>
 
 	<div id="log" style="white-space: pre; background: #ffffff;"></div>

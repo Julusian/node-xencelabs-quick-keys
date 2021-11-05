@@ -1,4 +1,5 @@
 import * as EventEmitter from 'eventemitter3'
+import { WheelEvent } from '.'
 
 import { HIDDevice } from './hid'
 import {
@@ -7,36 +8,48 @@ import {
 	XenceQuickKeysDisplayBrightness,
 	XenceQuickKeysEvents,
 	XenceQuickKeysOrientation,
+	XenceQuickKeysWheelSpeed,
 } from './types'
 
 const keyCount = 10
 
 export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> implements XenceQuickKeys {
 	protected readonly device: HIDDevice
-	// private readonly options: Readonly<OpenStreamDeckOptions>
-	// private readonly keyState: boolean[]
+	private readonly keyState: boolean[]
 
 	constructor(device: HIDDevice) {
 		super()
 
 		this.device = device
 
-		// this.keyState = new Array(keyCount).fill(false)
+		this.keyState = new Array(keyCount).fill(false)
 
-		this.device.on('input', (_data) => {
-			// TODO
-			// for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
-			// 	const keyPressed = Boolean(data[keyIndex])
-			// 	const stateChanged = keyPressed !== this.keyState[keyIndex]
-			// 	if (stateChanged) {
-			// 		this.keyState[keyIndex] = keyPressed
-			// 		if (keyPressed) {
-			// 			this.emit('down', keyIndex)
-			// 		} else {
-			// 			this.emit('up', keyIndex)
-			// 		}
-			// 	}
-			// }
+		this.device.on('data', (reportId, data) => {
+			console.log(reportId, data)
+			if (reportId === 0x02 && data.readUInt8(0) === 0xf0) {
+				const wheelByte = data.readUInt8(6)
+				if (wheelByte > 0) {
+					if (wheelByte & 0x01) {
+						this.emit('wheel', WheelEvent.Right)
+					} else if (wheelByte & 0x02) {
+						this.emit('wheel', WheelEvent.Left)
+					}
+				} else {
+					const keys = data.readUInt16LE(1)
+					for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
+						const keyPressed = (keys & (1 << keyIndex)) > 0
+						const stateChanged = keyPressed !== this.keyState[keyIndex]
+						if (stateChanged) {
+							this.keyState[keyIndex] = keyPressed
+							if (keyPressed) {
+								this.emit('down', keyIndex)
+							} else {
+								this.emit('up', keyIndex)
+							}
+						}
+					}
+				}
+			}
 		})
 
 		this.subscribeToKeyEvents().catch((e) => {
@@ -151,5 +164,74 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 		this.insertHeader(buffer)
 
 		return this.device.sendReports([buffer])
+	}
+
+	public async setWheelSpeed(speed: XenceQuickKeysWheelSpeed): Promise<void> {
+		if (!Object.values(XenceQuickKeysWheelSpeed).includes(speed)) {
+			throw new TypeError('Expected a valid speed')
+		}
+
+		const buffer = Buffer.alloc(32)
+		buffer.writeUInt8(0x02, 0)
+		buffer.writeUInt8(0xb4, 1)
+		buffer.writeUInt8(0x04, 2)
+		buffer.writeUInt8(0x01, 3)
+		buffer.writeUInt8(0x01, 4)
+		buffer.writeUInt8(speed, 5)
+
+		this.insertHeader(buffer)
+
+		return this.device.sendReports([buffer])
+	}
+
+	public async setSleepTimeout(minutes: number): Promise<void> {
+		if (minutes < 0 || minutes > 255) {
+			throw new TypeError('Expected a valid number of minutes')
+		}
+
+		const buffer = Buffer.alloc(32)
+		buffer.writeUInt8(0x02, 0)
+		buffer.writeUInt8(0xb4, 1)
+		buffer.writeUInt8(0x08, 2)
+		buffer.writeUInt8(0x01, 3)
+		buffer.writeUInt8(minutes, 4)
+
+		this.insertHeader(buffer)
+
+		return this.device.sendReports([buffer])
+	}
+
+	public async showOverlayText(duration: number, text: string): Promise<void> {
+		if (duration <= 0 || duration > 255) throw new TypeError('Expected a valid number of seconds')
+
+		if (typeof text !== 'string' || text.length > 32)
+			throw new TypeError(`Expected a valid overlay text of up to 32 characters`)
+
+		const buffers = [
+			this.createOverlayChunk(0x05, duration, text.substr(0, 8), false),
+			this.createOverlayChunk(0x06, duration, text.substr(8, 8), text.length > 16),
+		]
+
+		for (let offset = 16; offset < text.length; offset += 8) {
+			buffers.push(this.createOverlayChunk(0x06, duration, text.substr(offset, 8), text.length > offset + 8))
+		}
+
+		return this.device.sendReports(buffers)
+	}
+
+	private createOverlayChunk(specialByte: number, duration: number, chars: string, hasMore: boolean): Buffer {
+		const buffer = Buffer.alloc(32)
+		buffer.writeUInt8(0x02, 0)
+		buffer.writeUInt8(0xb1, 1)
+		buffer.writeUInt8(specialByte, 2)
+		buffer.writeUInt8(duration, 3)
+		buffer.writeUInt8(chars.length * 2, 5)
+		buffer.writeUInt8(hasMore ? 0x01 : 0x00, 6)
+
+		this.insertHeader(buffer)
+
+		buffer.write(chars, 16, 'utf16le')
+
+		return buffer
 	}
 }

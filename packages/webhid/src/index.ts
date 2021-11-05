@@ -2,7 +2,14 @@ import { VENDOR_ID, PRODUCT_IDS, XenceQuickKeysDevice } from '@xencelabs-quick-k
 import { WebHIDDevice } from './device'
 import { XenceQuickKeysWeb } from './wrapper'
 
-export { KeyIndex, XenceQuickKeys, XenceQuickKeysOrientation, WheelEvent } from '@xencelabs-quick-keys/core'
+export {
+	KeyIndex,
+	XenceQuickKeys,
+	XenceQuickKeysOrientation,
+	WheelEvent,
+	XenceQuickKeysWheelSpeed,
+	XenceQuickKeysDisplayBrightness,
+} from '@xencelabs-quick-keys/core'
 export { XenceQuickKeysWeb } from './wrapper'
 
 /**

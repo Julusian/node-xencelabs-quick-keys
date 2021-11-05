@@ -3,7 +3,14 @@ import * as HID from 'node-hid'
 import { NodeHIDDevice, XenceQuickKeysInfo } from './device'
 import { XenceQuickKeysNode } from './wrapper'
 
-export { KeyIndex, XenceQuickKeys } from '@xencelabs-quick-keys/core'
+export {
+	KeyIndex,
+	XenceQuickKeys,
+	XenceQuickKeysOrientation,
+	WheelEvent,
+	XenceQuickKeysWheelSpeed,
+	XenceQuickKeysDisplayBrightness,
+} from '@xencelabs-quick-keys/core'
 
 const DEVICE_INTERFACE = 2
 

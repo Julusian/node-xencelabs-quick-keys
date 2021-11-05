@@ -28,6 +28,14 @@ export enum XenceQuickKeysDisplayBrightness {
 	Full = 3,
 }
 
+export enum XenceQuickKeysWheelSpeed {
+	Slowest = 5,
+	Slower = 4,
+	Normal = 3,
+	Faster = 2,
+	Fastest = 1,
+}
+
 export interface XenceQuickKeys extends EventEmitter<XenceQuickKeysEvents> {
 	/**
 	 * Checks if a keyIndex is valid. Throws an error on failure
@@ -71,12 +79,28 @@ export interface XenceQuickKeys extends EventEmitter<XenceQuickKeysEvents> {
 	 */
 	setDisplayBrightness(brightness: XenceQuickKeysDisplayBrightness): Promise<void>
 
-	// /**
-	//  * Sets the brightness of the keys on the Stream Deck
-	//  *
-	//  * @param {number} percentage The percentage brightness
-	//  */
-	// setBrightness(percentage: number): Promise<void>
+	/**
+	 * Set the speed of the wheel
+	 *
+	 * @param {number} speed The speed of the wheel 5-1
+	 */
+	setWheelSpeed(speed: XenceQuickKeysWheelSpeed): Promise<void>
+
+	/**
+	 * Set the sleep timeout. The device will go into a sleep mode after this period.
+	 * In minutes
+	 *
+	 * @param {number} minutes The timeout in minutes
+	 */
+	setSleepTimeout(minutes: number): Promise<void>
+
+	/**
+	 * Show a line of text over the whole display, for a period of time
+	 *
+	 * @param {number} duration How long to show for (seconds)
+	 * @param {string} text The text to display. Up to 32 characters
+	 */
+	showOverlayText(duration: number, text: string): Promise<void>
 
 	// /**
 	//  * Get firmware version from Stream Deck
