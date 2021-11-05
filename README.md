@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/Julusian/node-xencelabs-quick-keys/branch/master/graph/badge.svg?token=Hl4QXGZJMF)](https://codecov.io/gh/Julusian/node-xencelabs-quick-keys)
 
 [@xencelabs-quick-keys](https://www.npmjs.com/org/xencelabs-quick-keys) is a collection of libraries for interfacing with the [Xencelabs Quick Keys](https://www.xencelabs.com/product/xencelabs-quick-keys-remote/).  
-With WebHID being made publicly available it is now possible to use the Steam Deck directly in the browser.
+With WebHID being made publicly available it is now possible to use the device directly in the browser.
 
 ## Intended use
 

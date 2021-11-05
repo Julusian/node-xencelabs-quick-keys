@@ -69,53 +69,54 @@ The root methods exposed by the library are as follows. For more information it 
 
 ```typescript
 /**
- * Request the user to select some streamdecks to open
- * @param userOptions Options to customise the device behvaiour
+ * Request the user to select some devices to open
  */
-export async function requestStreamDecks(options?: OpenStreamDeckOptions): Promise<StreamDeckWeb[]>
+export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]>
 
 /**
- * Reopen previously selected streamdecks.
+ * Reopen previously selected devices.
  * The browser remembers what the user previously allowed your site to access, and this will open those without the request dialog
- * @param options Options to customise the device behvaiour
  */
-export async function getStreamDecks(options?: OpenStreamDeckOptions): Promise<StreamDeckWeb[]>
+export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]>
 
 /**
- * Open a StreamDeck from a manually selected HIDDevice handle
+ * Open a device from a manually selected HIDDevice handle
  * @param browserDevice The unopened browser HIDDevice
- * @param userOptions Options to customise the device behvaiour
  */
-export async function openDevice(browserDevice: HIDDevice, userOptions?: OpenStreamDeckOptions): Promise<StreamDeckWeb>
+export async function openDevice(browserDevice: HIDDevice): Promise<XenceQuickKeysWeb>
 ```
 
-The StreamDeck type can be found [here](/packages/core/src/models/types.ts#L15)
+The XenceQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
 
 ## Example
 
 ```typescript
-import { requestStreamDecks } from '@xencelabs-quick-keys/webhid'
+import { requestXenceQuickKeys } from '@xencelabs-quick-keys/webhid'
 
-// Prompts the user to select a streamdeck to use
-const myStreamDecks = await requestStreamDecks()
+// Prompts the user to select a device to use
+const myDevices = await requestXenceQuickKeys()
 
-myStreamDecks[0].on('down', (keyIndex) => {
+myDevices[0].on('down', (keyIndex) => {
 	console.log('key %d down', keyIndex)
 })
 
-myStreamDecks[0].on('up', (keyIndex) => {
+myDevices[0].on('up', (keyIndex) => {
 	console.log('key %d up', keyIndex)
+})
+
+myDevices[0].on('wheel', (e) => {
+	console.log('wheel %s', e)
 })
 
 // Fired whenever an error is detected by the hid device.
 // Always add a listener for this event! If you don't, errors will be silently dropped.
-myStreamDecks[0].on('error', (error) => {
+myDevices[0].on('error', (error) => {
 	console.error(error)
 })
 
-// Fill the first button form the left in the first row with a solid red color. This is asynchronous.
-await myStreamDecks[0].fillKeyColor(4, 255, 0, 0)
-console.log('Successfully wrote a red square to key 4.')
+// Fill the first button text. This is asynchronous.
+await myDevices[0].setKeyText(4, 'test')
+console.log('Successfully wrote text to key 4.')
 ```
 
 Some the [demo site](https://julusian.github.io/node-xencelabs-quick-keys/) for some more complete examples and its corresponding [source](/packages/webhid-demo).

@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import * as HID from 'node-hid'
 
 /**
- * Information about a found streamdeck
+ * Information about a found device
  */
 export interface XenceQuickKeysInfo {
 	/** The connected path of the device in the usb tree */

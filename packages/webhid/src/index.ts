@@ -13,8 +13,7 @@ export {
 export { XenceQuickKeysWeb } from './wrapper'
 
 /**
- * Request the user to select some streamdecks to open
- * @param userOptions Options to customise the device behvaiour
+ * Request the user to select some devices to open
  */
 export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 	// TODO - error handling
@@ -35,7 +34,6 @@ export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 /**
  * Reopen previously selected XenceQuickKeys.
  * The browser remembers what the user previously allowed your site to access, and this will open those without the request dialog
- * @param options Options to customise the device behvaiour
  */
 export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 	// TODO - error handling
@@ -45,9 +43,8 @@ export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 }
 
 /**
- * Open a StreamDeck from a manually selected HIDDevice handle
+ * Open a device from a manually selected HIDDevice handle
  * @param browserDevice The unopened browser HIDDevice
- * @param userOptions Options to customise the device behvaiour
  */
 export async function openDevice(browserDevice: HIDDevice): Promise<XenceQuickKeysWeb> {
 	await browserDevice.open()

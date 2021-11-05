@@ -1,4 +1,4 @@
-import { XenceQuickKeys, VENDOR_ID, PRODUCT_IDS, XenceQuickKeysDevice } from '@xencelabs-quick-keys/core'
+import { VENDOR_ID, PRODUCT_IDS, XenceQuickKeysDevice } from '@xencelabs-quick-keys/core'
 import * as HID from 'node-hid'
 import { NodeHIDDevice, XenceQuickKeysInfo } from './device'
 import { XenceQuickKeysNode } from './wrapper'
@@ -36,7 +36,7 @@ export function listXenceQuickKeys(): XenceQuickKeysInfo[] {
 }
 
 /**
- * Get the info of a device if the given path is a streamdeck
+ * Get the info of a device if the given path is a compatible device
  */
 export function getXenceQuickKeysInfo(path: string): XenceQuickKeysInfo | undefined {
 	return listXenceQuickKeys().find((dev) => dev.path === path)
@@ -46,7 +46,7 @@ export function getXenceQuickKeysInfo(path: string): XenceQuickKeysInfo | undefi
  * Open a device
  * @param devicePath The path of the device to open. If not set, the first will be used
  */
-export async function openXenceQuickKeys(devicePath?: string): Promise<XenceQuickKeys> {
+export async function openXenceQuickKeys(devicePath?: string): Promise<XenceQuickKeysNode> {
 	let foundDevices = listXenceQuickKeys()
 	if (devicePath) {
 		foundDevices = foundDevices.filter((d) => d.path === devicePath)
@@ -61,6 +61,6 @@ export async function openXenceQuickKeys(devicePath?: string): Promise<XenceQuic
 	}
 
 	const device = new NodeHIDDevice(foundDevices[0])
-	const rawSteamdeck = await XenceQuickKeysDevice.create(device)
-	return new XenceQuickKeysNode(rawSteamdeck)
+	const innerDevice = await XenceQuickKeysDevice.create(device)
+	return new XenceQuickKeysNode(innerDevice)
 }
