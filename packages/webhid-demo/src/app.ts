@@ -1,4 +1,5 @@
-import { requestXenceQuickKeys, getXenceQuickKeys, XenceQuickKeysWeb } from '@xencelabs-quick-keys/webhid'
+import { XenceQuickKeysDisplayBrightness } from '@xencelabs-quick-keys/core'
+import { requestXenceQuickKeys, XenceQuickKeysWeb, XenceQuickKeysOrientation } from '@xencelabs-quick-keys/webhid'
 
 function appendLog(str: string) {
 	const logElm = document.getElementById('log')
@@ -40,6 +41,22 @@ let device: XenceQuickKeysWeb | null = null
 // 	}
 // }
 
+async function updateLabels(): Promise<void> {
+	if (device) {
+		const ps: Array<Promise<void>> = []
+		document.querySelectorAll<HTMLInputElement>('.textlabel').forEach((input) => {
+			const id = input.getAttribute('data-id')
+			if (id && device) {
+				const id2 = parseInt(id)
+
+				ps.push(device.setKeyText(id2, input.value.substr(0, 8)))
+			}
+		})
+
+		await Promise.all(ps)
+	}
+}
+
 async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
 	// appendLog(`Device opened. Serial: ${await device.getSerialNumber()} Firmware: ${await device.getFirmwareVersion()}`)
 
@@ -59,18 +76,25 @@ async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
 
 	// device.fillColor(2, 255, 0, 0)
 	// device.fillColor(12, 0, 0, 255)
+
+	await device.setTextOrientation(XenceQuickKeysOrientation.Rotate0)
+	await device.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full)
+
+	await device.setWheelColor(255, 0, 0)
+	await device.setKeyText(1, 'hello')
+	await updateLabels()
 }
 
 if (consentButton) {
-	window.addEventListener('load', async () => {
-		// attempt to open a previously selected device.
-		const devices = await getXenceQuickKeys()
-		if (devices.length > 0) {
-			device = devices[0]
-			openDevice(device).catch(console.error)
-		}
-		console.log(devices)
-	})
+	// window.addEventListener('load', async () => {
+	// 	// attempt to open a previously selected device.
+	// 	const devices = await getXenceQuickKeys()
+	// 	if (devices.length > 0) {
+	// 		device = devices[0]
+	// 		openDevice(device).catch(console.error)
+	// 	}
+	// 	console.log(devices)
+	// })
 
 	const brightnessRange = document.getElementById('brightness-range') as HTMLInputElement | undefined
 	if (brightnessRange) {
@@ -79,6 +103,28 @@ if (consentButton) {
 			// if (device) {
 			// 	device.setBrightness(value).catch(console.error)
 			// }
+		})
+	}
+
+	document.querySelectorAll<HTMLInputElement>('.textlabel').forEach((e) => e.addEventListener('input', updateLabels))
+
+	const brightnessSelect = document.getElementById('brightness-select') as HTMLInputElement | undefined
+	if (brightnessSelect) {
+		brightnessSelect.addEventListener('input', () => {
+			const value = parseInt(brightnessSelect.value) as any as XenceQuickKeysDisplayBrightness
+			if (device) {
+				device.setDisplayBrightness(value)
+			}
+		})
+	}
+
+	const orientationSelect = document.getElementById('orientation-select') as HTMLInputElement | undefined
+	if (orientationSelect) {
+		orientationSelect.addEventListener('input', () => {
+			const value = parseInt(orientationSelect.value) as any as XenceQuickKeysOrientation
+			if (device) {
+				device.setTextOrientation(value)
+			}
 		})
 	}
 

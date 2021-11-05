@@ -1,6 +1,11 @@
 import * as EventEmitter from 'eventemitter3'
-import { KeyIndex } from './models'
-import { XenceQuickKeys, XenceQuickKeysEvents } from './models/types'
+import {
+	KeyIndex,
+	XenceQuickKeys,
+	XenceQuickKeysDisplayBrightness,
+	XenceQuickKeysEvents,
+	XenceQuickKeysOrientation,
+} from './types'
 
 /**
  * A minimal proxy around a XenceQuickKeys instance.
@@ -24,6 +29,18 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 
 	public async setKeyText(keyIndex: KeyIndex, text: string): Promise<void> {
 		return this.device.setKeyText(keyIndex, text)
+	}
+
+	public async setWheelColor(r: number, g: number, b: number): Promise<void> {
+		return this.device.setWheelColor(r, g, b)
+	}
+
+	public async setTextOrientation(orientation: XenceQuickKeysOrientation): Promise<void> {
+		return this.device.setTextOrientation(orientation)
+	}
+
+	public async setDisplayBrightness(brightness: XenceQuickKeysDisplayBrightness): Promise<void> {
+		return this.device.setDisplayBrightness(brightness)
 	}
 
 	/**

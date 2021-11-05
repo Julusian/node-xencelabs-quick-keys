@@ -32,7 +32,7 @@ module.exports = {
 
 		// At some point you'll have to debug your code, that's why I'm giving you
 		// for free a source map file to make your life easier
-		sourceMapFilename: 'main.map',
+		// sourceMapFilename: 'main.map',
 	},
 	resolve: {
 		extensions: ['.tsx', '.ts', '.js'],

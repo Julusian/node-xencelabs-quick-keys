@@ -27,6 +27,62 @@
 		<input type="range" min="1" max="100" value="60" id="brightness-range" />
 	</p>
 
+	<p>
+		Display Brightness:
+		<select id="brightness-select">
+			<option value="3">Full</option>
+			<option value="2">Medium</option>
+			<option value="1">Min</option>
+			<option value="0">Off</option>
+		</select>
+	</p>
+
+	<p>
+		Orientation:
+		<select id="orientation-select">
+			<option value="1">0&#176;</option>
+			<option value="2">90&#176;</option>
+			<option value="3">180&#176;</option>
+			<option value="4">270&#176;</option>
+		</select>
+	</p>
+
+	<p>
+		<table>
+			<tr>
+				<td colspan="4">Note: these are orientation for 0&#176;</td>
+			</tr>
+			<tr>
+				<td>
+					<input class="textlabel" value="one" data-id="0" />
+				</td>
+				<td>
+					<input class="textlabel" value="two" data-id="1" />
+				</td>
+				<td>
+					<input class="textlabel" value="three" data-id="2" />
+				</td>
+				<td>
+					<input class="textlabel" value="four" data-id="3" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<input class="textlabel" value="five" data-id="4" />
+				</td>
+				<td>
+					<input class="textlabel" value="six" data-id="5" />
+				</td>
+				<td>
+					<input class="textlabel" value="seven" data-id="6" />
+				</td>
+				<td>
+					<input class="textlabel" value="eight" data-id="7" />
+				</td>
+			</tr>
+		</table>
+	</p>
+
 	<div id="log" style="white-space: pre; background: #ffffff;"></div>
 
 	<script src="app.js" type="text/javascript"></script>

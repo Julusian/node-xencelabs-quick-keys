@@ -1,5 +1,6 @@
-export { HIDDevice } from './device'
-export { KeyIndex, XenceQuickKeys, XenceQuickKeysDevice } from './models'
+export { HIDDevice } from './hid'
+export * from './types'
+export { XenceQuickKeysDevice } from './device'
 export { XenceQuickKeysProxy } from './proxy'
 
 /** Xencelabs vendor id */

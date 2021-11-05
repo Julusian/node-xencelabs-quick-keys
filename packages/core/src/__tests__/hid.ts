@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-standalone-expect */
 import { EventEmitter } from 'events'
-import { EncodeJPEGHelper } from '../models/device'
-import { HIDDevice } from '../device'
+import { EncodeJPEGHelper } from '../device'
+import { HIDDevice } from '../hid'
 export class DummyHID extends EventEmitter implements HIDDevice {
 	public dataKeyOffset?: number | undefined
 

@@ -2,7 +2,7 @@ import { readFixtureJSON } from './helpers'
 import { DEVICE_MODELS, StreamDeck } from '../'
 import { DeviceModelId, OpenStreamDeckOptions } from '../models'
 import { DummyHID } from './hid'
-import { EncodeJPEGHelper } from '../models/device'
+import { EncodeJPEGHelper } from '../device'
 
 function openStreamDeck(path: string, deviceModel: DeviceModelId, userOptions?: OpenStreamDeckOptions): StreamDeck {
 	const encodeJpegMock: jest.MockedFunction<EncodeJPEGHelper> = jest.fn((_b: Buffer, _w: number, _h: number) => {
