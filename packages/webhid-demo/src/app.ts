@@ -1,10 +1,10 @@
 import {
-	requestXenceQuickKeys,
-	XenceQuickKeysWeb,
-	XenceQuickKeysOrientation,
-	XenceQuickKeysDisplayBrightness,
+	requestXencelabsQuickKeys,
+	XencelabsQuickKeysWeb,
+	XencelabsQuickKeysDisplayOrientation,
+	XencelabsQuickKeysDisplayBrightness,
 	WheelEvent,
-	XenceQuickKeysWheelSpeed,
+	XencelabsQuickKeysWheelSpeed,
 } from '@xencelabs-quick-keys/webhid'
 
 function appendLog(str: string) {
@@ -16,7 +16,7 @@ function appendLog(str: string) {
 
 const consentButton = document.getElementById('consent-button')
 
-let device: XenceQuickKeysWeb | null = null
+let device: XencelabsQuickKeysWeb | null = null
 
 async function updateLabels(): Promise<void> {
 	if (device) {
@@ -47,7 +47,7 @@ async function updateColour(): Promise<void> {
 let wheelCount = 0
 const wheelCounter = document.querySelector('#counter')
 
-async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
+async function openDevice(device: XencelabsQuickKeysWeb): Promise<void> {
 	appendLog(`Device opened`) //. Firmware: ${await device.getFirmwareVersion()}`)
 
 	device.on('down', (key: number) => {
@@ -77,9 +77,9 @@ async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
 	document.querySelectorAll<HTMLInputElement>('.textlabel').forEach((e) => e.classList.remove('pressed'))
 
 	await device.setSleepTimeout(5)
-	await device.setWheelSpeed(XenceQuickKeysWheelSpeed.Normal)
-	await device.setTextOrientation(XenceQuickKeysOrientation.Rotate0)
-	await device.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full)
+	await device.setWheelSpeed(XencelabsQuickKeysWheelSpeed.Normal)
+	await device.setDisplayOrientation(XencelabsQuickKeysDisplayOrientation.Rotate0)
+	await device.setDisplayBrightness(XencelabsQuickKeysDisplayBrightness.Full)
 
 	await updateColour()
 	await updateLabels()
@@ -88,7 +88,7 @@ async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
 if (consentButton) {
 	// window.addEventListener('load', async () => {
 	// 	// attempt to open a previously selected device.
-	// 	const devices = await getXenceQuickKeys()
+	// 	const devices = await getXencelabsQuickKeys()
 	// 	if (devices.length > 0) {
 	// 		device = devices[0]
 	// 		openDevice(device).catch(console.error)
@@ -103,7 +103,7 @@ if (consentButton) {
 	const speedRange = document.getElementById('speed-range') as HTMLInputElement | undefined
 	if (speedRange) {
 		speedRange.addEventListener('input', () => {
-			const speed = parseInt(speedRange.value) as any as XenceQuickKeysWheelSpeed
+			const speed = parseInt(speedRange.value) as any as XencelabsQuickKeysWheelSpeed
 			if (device) {
 				device.setWheelSpeed(6 - speed).catch(console.error) // flip the number
 			}
@@ -115,7 +115,7 @@ if (consentButton) {
 	const brightnessSelect = document.getElementById('brightness-select') as HTMLInputElement | undefined
 	if (brightnessSelect) {
 		brightnessSelect.addEventListener('input', () => {
-			const value = parseInt(brightnessSelect.value) as any as XenceQuickKeysDisplayBrightness
+			const value = parseInt(brightnessSelect.value) as any as XencelabsQuickKeysDisplayBrightness
 			if (device) {
 				device.setDisplayBrightness(value).catch(console.error)
 			}
@@ -125,9 +125,9 @@ if (consentButton) {
 	const orientationSelect = document.getElementById('orientation-select') as HTMLInputElement | undefined
 	if (orientationSelect) {
 		orientationSelect.addEventListener('input', () => {
-			const value = parseInt(orientationSelect.value) as any as XenceQuickKeysOrientation
+			const value = parseInt(orientationSelect.value) as any as XencelabsQuickKeysDisplayOrientation
 			if (device) {
-				device.setTextOrientation(value).catch(console.error)
+				device.setDisplayOrientation(value).catch(console.error)
 			}
 		})
 	}
@@ -149,7 +149,7 @@ if (consentButton) {
 		}
 		// Prompt for a device
 		try {
-			const devices = await requestXenceQuickKeys()
+			const devices = await requestXencelabsQuickKeys()
 			device = devices[0]
 			if (devices.length === 0) {
 				appendLog('No device was selected')

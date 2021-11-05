@@ -1,7 +1,7 @@
 export { HIDDevice } from './hid'
 export * from './types'
-export { XenceQuickKeysDevice } from './device'
-export { XenceQuickKeysProxy } from './proxy'
+export { XencelabsQuickKeysDevice } from './device'
+export { XencelabsQuickKeysProxy } from './proxy'
 
 /** Xencelabs vendor id */
 export const VENDOR_ID = 0x28bd

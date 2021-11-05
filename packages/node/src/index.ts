@@ -1,15 +1,15 @@
-import { VENDOR_ID, PRODUCT_IDS, XenceQuickKeysDevice } from '@xencelabs-quick-keys/core'
+import { VENDOR_ID, PRODUCT_IDS, XencelabsQuickKeysDevice } from '@xencelabs-quick-keys/core'
 import * as HID from 'node-hid'
-import { NodeHIDDevice, XenceQuickKeysInfo } from './device'
-import { XenceQuickKeysNode } from './wrapper'
+import { NodeHIDDevice, XencelabsQuickKeysInfo } from './device'
+import { XencelabsQuickKeysNode } from './wrapper'
 
 export {
 	KeyIndex,
-	XenceQuickKeys,
-	XenceQuickKeysOrientation,
+	XencelabsQuickKeys,
+	XencelabsQuickKeysDisplayOrientation,
 	WheelEvent,
-	XenceQuickKeysWheelSpeed,
-	XenceQuickKeysDisplayBrightness,
+	XencelabsQuickKeysWheelSpeed,
+	XencelabsQuickKeysDisplayBrightness,
 } from '@xencelabs-quick-keys/core'
 
 export const DEVICE_INTERFACE = 2
@@ -17,8 +17,8 @@ export const DEVICE_INTERFACE = 2
 /**
  * Scan for and list detected devices
  */
-export function listXenceQuickKeys(): XenceQuickKeysInfo[] {
-	const devices: XenceQuickKeysInfo[] = []
+export function listXencelabsQuickKeys(): XencelabsQuickKeysInfo[] {
+	const devices: XencelabsQuickKeysInfo[] = []
 	for (const dev of HID.devices()) {
 		if (
 			dev.vendorId === VENDOR_ID &&
@@ -38,16 +38,16 @@ export function listXenceQuickKeys(): XenceQuickKeysInfo[] {
 /**
  * Get the info of a device if the given path is a compatible device
  */
-export function getXenceQuickKeysInfo(path: string): XenceQuickKeysInfo | undefined {
-	return listXenceQuickKeys().find((dev) => dev.path === path)
+export function getXencelabsQuickKeysInfo(path: string): XencelabsQuickKeysInfo | undefined {
+	return listXencelabsQuickKeys().find((dev) => dev.path === path)
 }
 
 /**
  * Open a device
  * @param devicePath The path of the device to open. If not set, the first will be used
  */
-export async function openXenceQuickKeys(devicePath?: string): Promise<XenceQuickKeysNode> {
-	let foundDevices = listXenceQuickKeys()
+export async function openXencelabsQuickKeys(devicePath?: string): Promise<XencelabsQuickKeysNode> {
+	let foundDevices = listXencelabsQuickKeys()
 	if (devicePath) {
 		foundDevices = foundDevices.filter((d) => d.path === devicePath)
 	}
@@ -61,6 +61,6 @@ export async function openXenceQuickKeys(devicePath?: string): Promise<XenceQuic
 	}
 
 	const device = new NodeHIDDevice(foundDevices[0])
-	const innerDevice = await XenceQuickKeysDevice.create(device)
-	return new XenceQuickKeysNode(innerDevice)
+	const innerDevice = await XencelabsQuickKeysDevice.create(device)
+	return new XencelabsQuickKeysNode(innerDevice)
 }

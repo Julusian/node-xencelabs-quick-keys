@@ -71,30 +71,30 @@ The root methods exposed by the library are as follows. For more information it 
 /**
  * Request the user to select some devices to open
  */
-export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]>
+export async function requestXencelabsQuickKeys(): Promise<XencelabsQuickKeysWeb[]>
 
 /**
  * Reopen previously selected devices.
  * The browser remembers what the user previously allowed your site to access, and this will open those without the request dialog
  */
-export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]>
+export async function getXencelabsQuickKeys(): Promise<XencelabsQuickKeysWeb[]>
 
 /**
  * Open a device from a manually selected HIDDevice handle
  * @param browserDevice The unopened browser HIDDevice
  */
-export async function openDevice(browserDevice: HIDDevice): Promise<XenceQuickKeysWeb>
+export async function openDevice(browserDevice: HIDDevice): Promise<XencelabsQuickKeysWeb>
 ```
 
-The XenceQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
+The XencelabsQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
 
 ## Example
 
 ```typescript
-import { requestXenceQuickKeys } from '@xencelabs-quick-keys/webhid'
+import { requestXencelabsQuickKeys } from '@xencelabs-quick-keys/webhid'
 
 // Prompts the user to select a device to use
-const myDevices = await requestXenceQuickKeys()
+const myDevices = await requestXencelabsQuickKeys()
 
 myDevices[0].on('down', (keyIndex) => {
 	console.log('key %d down', keyIndex)

@@ -7,28 +7,28 @@ export enum WheelEvent {
 	Right = 'right',
 }
 
-export type XenceQuickKeysEvents = {
+export type XencelabsQuickKeysEvents = {
 	down: [key: KeyIndex]
 	up: [key: KeyIndex]
 	wheel: [event: WheelEvent]
 	error: [err: unknown]
 }
 
-export enum XenceQuickKeysOrientation {
+export enum XencelabsQuickKeysDisplayOrientation {
 	Rotate0 = 1,
 	Rotate90 = 2,
 	Rotate180 = 3,
 	Rotate270 = 4,
 }
 
-export enum XenceQuickKeysDisplayBrightness {
+export enum XencelabsQuickKeysDisplayBrightness {
 	Off = 0,
 	Low = 1,
 	Medium = 2,
 	Full = 3,
 }
 
-export enum XenceQuickKeysWheelSpeed {
+export enum XencelabsQuickKeysWheelSpeed {
 	Slowest = 5,
 	Slower = 4,
 	Normal = 3,
@@ -36,7 +36,7 @@ export enum XenceQuickKeysWheelSpeed {
 	Fastest = 1,
 }
 
-export interface XenceQuickKeys extends EventEmitter<XenceQuickKeysEvents> {
+export interface XencelabsQuickKeys extends EventEmitter<XencelabsQuickKeysEvents> {
 	/**
 	 * Checks if a keyIndex is valid. Throws an error on failure
 	 * @param keyIndex The key to check
@@ -70,21 +70,21 @@ export interface XenceQuickKeys extends EventEmitter<XenceQuickKeysEvents> {
 	 *
 	 * @param {number} orientation The orientation of the device
 	 */
-	setTextOrientation(orientation: XenceQuickKeysOrientation): Promise<void>
+	setDisplayOrientation(orientation: XencelabsQuickKeysDisplayOrientation): Promise<void>
 
 	/**
 	 * Set the display brightness
 	 *
 	 * @param {number} brightness The brightness of the display 0-3
 	 */
-	setDisplayBrightness(brightness: XenceQuickKeysDisplayBrightness): Promise<void>
+	setDisplayBrightness(brightness: XencelabsQuickKeysDisplayBrightness): Promise<void>
 
 	/**
 	 * Set the speed of the wheel
 	 *
 	 * @param {number} speed The speed of the wheel 5-1
 	 */
-	setWheelSpeed(speed: XenceQuickKeysWheelSpeed): Promise<void>
+	setWheelSpeed(speed: XencelabsQuickKeysWheelSpeed): Promise<void>
 
 	/**
 	 * Set the sleep timeout. The device will go into a sleep mode after this period.

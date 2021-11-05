@@ -1,21 +1,21 @@
-import { VENDOR_ID, PRODUCT_IDS, XenceQuickKeysDevice } from '@xencelabs-quick-keys/core'
+import { VENDOR_ID, PRODUCT_IDS, XencelabsQuickKeysDevice } from '@xencelabs-quick-keys/core'
 import { WebHIDDevice } from './device'
-import { XenceQuickKeysWeb } from './wrapper'
+import { XencelabsQuickKeysWeb } from './wrapper'
 
 export {
 	KeyIndex,
-	XenceQuickKeys,
-	XenceQuickKeysOrientation,
+	XencelabsQuickKeys,
+	XencelabsQuickKeysDisplayOrientation,
 	WheelEvent,
-	XenceQuickKeysWheelSpeed,
-	XenceQuickKeysDisplayBrightness,
+	XencelabsQuickKeysWheelSpeed,
+	XencelabsQuickKeysDisplayBrightness,
 } from '@xencelabs-quick-keys/core'
-export { XenceQuickKeysWeb } from './wrapper'
+export { XencelabsQuickKeysWeb } from './wrapper'
 
 /**
  * Request the user to select some devices to open
  */
-export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
+export async function requestXencelabsQuickKeys(): Promise<XencelabsQuickKeysWeb[]> {
 	// TODO - error handling
 	return navigator.hid
 		.requestDevice({
@@ -32,10 +32,10 @@ export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 }
 
 /**
- * Reopen previously selected XenceQuickKeys.
+ * Reopen previously selected XencelabsQuickKeys.
  * The browser remembers what the user previously allowed your site to access, and this will open those without the request dialog
  */
-export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
+export async function getXencelabsQuickKeys(): Promise<XencelabsQuickKeysWeb[]> {
 	// TODO - error handling
 	return navigator.hid.getDevices().then(async (browserDevices) => {
 		return Promise.all(browserDevices.map(async (dev) => openDevice(dev)))
@@ -46,9 +46,9 @@ export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
  * Open a device from a manually selected HIDDevice handle
  * @param browserDevice The unopened browser HIDDevice
  */
-export async function openDevice(browserDevice: HIDDevice): Promise<XenceQuickKeysWeb> {
+export async function openDevice(browserDevice: HIDDevice): Promise<XencelabsQuickKeysWeb> {
 	await browserDevice.open()
 
-	const device = await XenceQuickKeysDevice.create(new WebHIDDevice(browserDevice))
-	return new XenceQuickKeysWeb(device)
+	const device = await XencelabsQuickKeysDevice.create(new WebHIDDevice(browserDevice))
+	return new XencelabsQuickKeysWeb(device)
 }

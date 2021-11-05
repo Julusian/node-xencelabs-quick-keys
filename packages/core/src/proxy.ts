@@ -1,22 +1,22 @@
 import * as EventEmitter from 'eventemitter3'
 import {
 	KeyIndex,
-	XenceQuickKeys,
-	XenceQuickKeysDisplayBrightness,
-	XenceQuickKeysEvents,
-	XenceQuickKeysOrientation,
-	XenceQuickKeysWheelSpeed,
+	XencelabsQuickKeys,
+	XencelabsQuickKeysDisplayBrightness,
+	XencelabsQuickKeysEvents,
+	XencelabsQuickKeysDisplayOrientation,
+	XencelabsQuickKeysWheelSpeed,
 } from './types'
 
 /**
- * A minimal proxy around a XenceQuickKeys instance.
- * This is intended to be used by libraries wrapping this that want to add more methods to the XenceQuickKeys class
+ * A minimal proxy around a XencelabsQuickKeys instance.
+ * This is intended to be used by libraries wrapping this that want to add more methods to the XencelabsQuickKeys class
  */
 
-export class XenceQuickKeysProxy implements XenceQuickKeys {
-	protected device: XenceQuickKeys
+export class XencelabsQuickKeysProxy implements XencelabsQuickKeys {
+	protected device: XencelabsQuickKeys
 
-	constructor(device: XenceQuickKeys) {
+	constructor(device: XencelabsQuickKeys) {
 		this.device = device
 	}
 
@@ -36,15 +36,15 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 		return this.device.setWheelColor(r, g, b)
 	}
 
-	public async setTextOrientation(orientation: XenceQuickKeysOrientation): Promise<void> {
-		return this.device.setTextOrientation(orientation)
+	public async setDisplayOrientation(orientation: XencelabsQuickKeysDisplayOrientation): Promise<void> {
+		return this.device.setDisplayOrientation(orientation)
 	}
 
-	public async setDisplayBrightness(brightness: XenceQuickKeysDisplayBrightness): Promise<void> {
+	public async setDisplayBrightness(brightness: XencelabsQuickKeysDisplayBrightness): Promise<void> {
 		return this.device.setDisplayBrightness(brightness)
 	}
 
-	public async setWheelSpeed(speed: XenceQuickKeysWheelSpeed): Promise<void> {
+	public async setWheelSpeed(speed: XencelabsQuickKeysWheelSpeed): Promise<void> {
 		return this.device.setWheelSpeed(speed)
 	}
 
@@ -64,23 +64,23 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 	 * EventEmitter
 	 */
 
-	public eventNames(): Array<EventEmitter.EventNames<XenceQuickKeysEvents>> {
+	public eventNames(): Array<EventEmitter.EventNames<XencelabsQuickKeysEvents>> {
 		return this.device.eventNames()
 	}
 
-	public listeners<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public listeners<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T
-	): Array<EventEmitter.EventListener<XenceQuickKeysEvents, T>> {
+	): Array<EventEmitter.EventListener<XencelabsQuickKeysEvents, T>> {
 		return this.device.listeners(event)
 	}
 
-	public listenerCount(event: EventEmitter.EventNames<XenceQuickKeysEvents>): number {
+	public listenerCount(event: EventEmitter.EventNames<XencelabsQuickKeysEvents>): number {
 		return this.device.listenerCount(event)
 	}
 
-	public emit<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public emit<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T,
-		...args: EventEmitter.EventArgs<XenceQuickKeysEvents, T>
+		...args: EventEmitter.EventArgs<XencelabsQuickKeysEvents, T>
 	): boolean {
 		return this.device.emit(event, ...args)
 	}
@@ -88,17 +88,17 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 	/**
 	 * Add a listener for a given event.
 	 */
-	public on<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public on<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T,
-		fn: EventEmitter.EventListener<XenceQuickKeysEvents, T>,
+		fn: EventEmitter.EventListener<XencelabsQuickKeysEvents, T>,
 		context?: unknown
 	): this {
 		this.device.on(event, fn, context)
 		return this
 	}
-	public addListener<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public addListener<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T,
-		fn: EventEmitter.EventListener<XenceQuickKeysEvents, T>,
+		fn: EventEmitter.EventListener<XencelabsQuickKeysEvents, T>,
 		context?: unknown
 	): this {
 		this.device.addListener(event, fn, context)
@@ -108,9 +108,9 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 	/**
 	 * Add a one-time listener for a given event.
 	 */
-	public once<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public once<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T,
-		fn: EventEmitter.EventListener<XenceQuickKeysEvents, T>,
+		fn: EventEmitter.EventListener<XencelabsQuickKeysEvents, T>,
 		context?: unknown
 	): this {
 		this.device.once(event, fn, context)
@@ -120,18 +120,18 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 	/**
 	 * Remove the listeners of a given event.
 	 */
-	public removeListener<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public removeListener<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T,
-		fn?: EventEmitter.EventListener<XenceQuickKeysEvents, T>,
+		fn?: EventEmitter.EventListener<XencelabsQuickKeysEvents, T>,
 		context?: unknown,
 		once?: boolean
 	): this {
 		this.device.removeListener(event, fn, context, once)
 		return this
 	}
-	public off<T extends EventEmitter.EventNames<XenceQuickKeysEvents>>(
+	public off<T extends EventEmitter.EventNames<XencelabsQuickKeysEvents>>(
 		event: T,
-		fn?: EventEmitter.EventListener<XenceQuickKeysEvents, T>,
+		fn?: EventEmitter.EventListener<XencelabsQuickKeysEvents, T>,
 		context?: unknown,
 		once?: boolean
 	): this {
@@ -139,7 +139,7 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 		return this
 	}
 
-	public removeAllListeners(event?: EventEmitter.EventNames<XenceQuickKeysEvents>): this {
+	public removeAllListeners(event?: EventEmitter.EventNames<XencelabsQuickKeysEvents>): this {
 		this.device.removeAllListeners(event)
 		return this
 	}

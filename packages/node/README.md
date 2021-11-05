@@ -81,34 +81,34 @@ The root methods exposed by the library are as follows. For more information it 
 /**
  * Scan for and list detected devices
  */
-export function listXenceQuickKeys(): XenceQuickKeysInfo[]
+export function listXencelabsQuickKeys(): XencelabsQuickKeysInfo[]
 
 /**
  * Get the info of a device if the given path is a compatible device
  */
-export function getXenceQuickKeysInfo(path: string): XenceQuickKeysInfo | undefined
+export function getXencelabsQuickKeysInfo(path: string): XencelabsQuickKeysInfo | undefined
 
 /**
  * Open a device
  * @param devicePath The path of the device to open. If not set, the first will be used
  */
-export function openXenceQuickKeys(devicePath?: string): XenceQuickKeysNode
+export function openXencelabsQuickKeys(devicePath?: string): XencelabsQuickKeysNode
 ```
 
-The XenceQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
+The XencelabsQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
 
 ## Example
 
 ```typescript
-import { openXenceQuickKeys } from '@xencelabs-quick-keys/node'
+import { openXencelabsQuickKeys } from '@xencelabs-quick-keys/node'
 
 // Automatically discovers connected devices, and attaches to the first one.
 // Throws if there are no connected devices.
 // You also have the option of providing the devicePath yourself as the first argument to the constructor.
-// For example: const myDevice = openXenceQuickKeys('\\\\?\\hid#vid_05f3&pid_0405&mi_00#7&56cf813&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}')
-// On linux the equivalent would be: const myDevice = openXenceQuickKeys('0001:0021:00')
-// Available devices can be found with listXenceQuickKeys()
-const myDevice = await openXenceQuickKeys() // Will throw an error if no compatible devices are connected.
+// For example: const myDevice = openXencelabsQuickKeys('\\\\?\\hid#vid_05f3&pid_0405&mi_00#7&56cf813&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}')
+// On linux the equivalent would be: const myDevice = openXencelabsQuickKeys('0001:0021:00')
+// Available devices can be found with listXencelabsQuickKeys()
+const myDevice = await openXencelabsQuickKeys() // Will throw an error if no compatible devices are connected.
 
 myDevice.on('down', (keyIndex) => {
 	console.log('key %d down', keyIndex)

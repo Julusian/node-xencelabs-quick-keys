@@ -9,7 +9,7 @@ import { devices, HID } from 'node-hid'
 mocked(HID).mockImplementation((path: any) => new DummyHID(path))
 
 // Must be required after we register a mock for `node-hid`.
-import { DEVICE_INTERFACE, getXenceQuickKeysInfo, listXenceQuickKeys, openXenceQuickKeys } from '../'
+import { DEVICE_INTERFACE, getXencelabsQuickKeysInfo, listXencelabsQuickKeys, openXencelabsQuickKeys } from '../'
 import { PRODUCT_IDS, VENDOR_ID } from '@xencelabs-quick-keys/core'
 
 describe('Xence Quick Keys', () => {
@@ -50,12 +50,12 @@ describe('Xence Quick Keys', () => {
 	test('no devices', () => {
 		mocked(devices).mockImplementation(() => [])
 
-		expect(listXenceQuickKeys()).toEqual([])
+		expect(listXencelabsQuickKeys()).toEqual([])
 	})
 	test('some devices', () => {
 		mockDevicesImplementation()
 
-		expect(listXenceQuickKeys()).toEqual([
+		expect(listXencelabsQuickKeys()).toEqual([
 			{
 				path: 'path-20994',
 				// serialNumber: 'some-number',
@@ -69,16 +69,16 @@ describe('Xence Quick Keys', () => {
 	test('info for bad path', () => {
 		mockDevicesImplementation()
 
-		const info = getXenceQuickKeysInfo('not-a-real-path')
+		const info = getXencelabsQuickKeysInfo('not-a-real-path')
 		expect(info).toBeFalsy()
 
-		const info2 = getXenceQuickKeysInfo('path-bad-product')
+		const info2 = getXencelabsQuickKeysInfo('path-bad-product')
 		expect(info2).toBeFalsy()
 	})
 	test('info for good path', () => {
 		mockDevicesImplementation()
 
-		const info2 = getXenceQuickKeysInfo('path-20994')
+		const info2 = getXencelabsQuickKeysInfo('path-20994')
 		expect(info2).toEqual({
 			path: 'path-20994',
 			// serialNumber: 'some-number-again',
@@ -87,11 +87,11 @@ describe('Xence Quick Keys', () => {
 	test('create for bad path', async () => {
 		mockDevicesImplementation()
 
-		await expect(async () => openXenceQuickKeys('not-a-real-path')).rejects.toThrowError(
+		await expect(async () => openXencelabsQuickKeys('not-a-real-path')).rejects.toThrowError(
 			new Error(`Device "not-a-real-path" was not found`)
 		)
 
-		await expect(async () => openXenceQuickKeys('path-bad-product')).rejects.toThrowError(
+		await expect(async () => openXencelabsQuickKeys('path-bad-product')).rejects.toThrowError(
 			new Error(`Device "path-bad-product" was not found`)
 		)
 	})

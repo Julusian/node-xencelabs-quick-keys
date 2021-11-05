@@ -1,21 +1,21 @@
 import {
-	XenceQuickKeys,
-	XenceQuickKeysDevice,
+	XencelabsQuickKeys,
+	XencelabsQuickKeysDevice,
 	WheelEvent,
-	XenceQuickKeysDisplayBrightness,
-	XenceQuickKeysOrientation,
-	XenceQuickKeysWheelSpeed,
+	XencelabsQuickKeysDisplayBrightness,
+	XencelabsQuickKeysDisplayOrientation,
+	XencelabsQuickKeysWheelSpeed,
 } from '../'
 import { DummyHID } from './hid'
 
-async function openMockDevice(path: string): Promise<XenceQuickKeys> {
+async function openMockDevice(path: string): Promise<XencelabsQuickKeys> {
 	const device = new DummyHID(path)
 
 	// swap the sendReports function, to supress the one that is emitted during connection
 	const oldFn = device.sendReports
 	const mockedFn = ((device as any).sendReports = jest.fn())
 
-	const result = await XenceQuickKeysDevice.create(device)
+	const result = await XencelabsQuickKeysDevice.create(device)
 
 	expect(mockedFn).toHaveBeenCalledTimes(1)
 	device.sendReports = oldFn
@@ -24,8 +24,8 @@ async function openMockDevice(path: string): Promise<XenceQuickKeys> {
 
 describe('Xencelabs Quick Keys', () => {
 	const devicePath = 'some_random_path_here'
-	let quickKeys: XenceQuickKeys
-	function getDevice(dev?: XenceQuickKeys): DummyHID {
+	let quickKeys: XencelabsQuickKeys
+	function getDevice(dev?: XencelabsQuickKeys): DummyHID {
 		return (dev || (quickKeys as any)).device
 	}
 
@@ -166,8 +166,8 @@ describe('Xencelabs Quick Keys', () => {
 		const device = getDevice()
 		device.sendReports = jest.fn()
 
-		await quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full)
-		await quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Off)
+		await quickKeys.setDisplayBrightness(XencelabsQuickKeysDisplayBrightness.Full)
+		await quickKeys.setDisplayBrightness(XencelabsQuickKeysDisplayBrightness.Off)
 
 		expect(device.sendReports).toHaveBeenCalledTimes(2)
 		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
@@ -184,7 +184,7 @@ describe('Xencelabs Quick Keys', () => {
 		])
 
 		await expect(async () =>
-			quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full + 1)
+			quickKeys.setDisplayBrightness(XencelabsQuickKeysDisplayBrightness.Full + 1)
 		).rejects.toThrow()
 		await expect(async () => quickKeys.setDisplayBrightness(-1)).rejects.toThrow()
 	})
@@ -193,8 +193,8 @@ describe('Xencelabs Quick Keys', () => {
 		const device = getDevice()
 		device.sendReports = jest.fn()
 
-		await quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Fastest)
-		await quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Slowest)
+		await quickKeys.setWheelSpeed(XencelabsQuickKeysWheelSpeed.Fastest)
+		await quickKeys.setWheelSpeed(XencelabsQuickKeysWheelSpeed.Slowest)
 
 		expect(device.sendReports).toHaveBeenCalledTimes(2)
 		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
@@ -210,16 +210,16 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(async () => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Fastest - 1)).rejects.toThrow()
-		await expect(async () => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Slowest + 1)).rejects.toThrow()
+		await expect(async () => quickKeys.setWheelSpeed(XencelabsQuickKeysWheelSpeed.Fastest - 1)).rejects.toThrow()
+		await expect(async () => quickKeys.setWheelSpeed(XencelabsQuickKeysWheelSpeed.Slowest + 1)).rejects.toThrow()
 	})
 
-	test('setTextOrientation', async () => {
+	test('setDisplayOrientation', async () => {
 		const device = getDevice()
 		device.sendReports = jest.fn()
 
-		await quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate0)
-		await quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate270)
+		await quickKeys.setDisplayOrientation(XencelabsQuickKeysDisplayOrientation.Rotate0)
+		await quickKeys.setDisplayOrientation(XencelabsQuickKeysDisplayOrientation.Rotate270)
 
 		expect(device.sendReports).toHaveBeenCalledTimes(2)
 		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
@@ -236,9 +236,9 @@ describe('Xencelabs Quick Keys', () => {
 		])
 
 		await expect(async () =>
-			quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate270 + 1)
+			quickKeys.setDisplayOrientation(XencelabsQuickKeysDisplayOrientation.Rotate270 + 1)
 		).rejects.toThrow()
-		await expect(async () => quickKeys.setTextOrientation(0)).rejects.toThrow()
+		await expect(async () => quickKeys.setDisplayOrientation(0)).rejects.toThrow()
 	})
 
 	test('setSleepTimeout', async () => {

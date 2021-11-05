@@ -5,7 +5,7 @@ import * as HID from 'node-hid'
 /**
  * Information about a found device
  */
-export interface XenceQuickKeysInfo {
+export interface XencelabsQuickKeysInfo {
 	/** The connected path of the device in the usb tree */
 	path: string
 	// /** The serialNumber of the device. If set it can be used as a unique hardware identifier */
@@ -20,7 +20,7 @@ export class NodeHIDDevice extends EventEmitter implements HIDDevice {
 	public dataKeyOffset?: number
 	private device: HID.HID
 
-	constructor(deviceInfo: XenceQuickKeysInfo) {
+	constructor(deviceInfo: XencelabsQuickKeysInfo) {
 		super()
 
 		this.device = new HID.HID(deviceInfo.path)

@@ -1,7 +1,7 @@
-import { XenceQuickKeys, XenceQuickKeysProxy } from '@xencelabs-quick-keys/core'
+import { XencelabsQuickKeys, XencelabsQuickKeysProxy } from '@xencelabs-quick-keys/core'
 
-export class XenceQuickKeysNode extends XenceQuickKeysProxy {
-	constructor(device: XenceQuickKeys) {
+export class XencelabsQuickKeysNode extends XencelabsQuickKeysProxy {
+	constructor(device: XencelabsQuickKeys) {
 		super(device)
 	}
 }

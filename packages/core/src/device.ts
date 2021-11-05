@@ -4,22 +4,22 @@ import { WheelEvent } from '.'
 import { HIDDevice } from './hid'
 import {
 	KeyIndex,
-	XenceQuickKeys,
-	XenceQuickKeysDisplayBrightness,
-	XenceQuickKeysEvents,
-	XenceQuickKeysOrientation,
-	XenceQuickKeysWheelSpeed,
+	XencelabsQuickKeys,
+	XencelabsQuickKeysDisplayBrightness,
+	XencelabsQuickKeysEvents,
+	XencelabsQuickKeysDisplayOrientation,
+	XencelabsQuickKeysWheelSpeed,
 } from './types'
 
 const keyCount = 10
 const textKeyCount = 8
 
-export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> implements XenceQuickKeys {
+export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEvents> implements XencelabsQuickKeys {
 	protected readonly device: HIDDevice
 	private readonly keyState: boolean[]
 
-	public static async create(device: HIDDevice): Promise<XenceQuickKeysDevice> {
-		const wrappedDevice = new XenceQuickKeysDevice(device)
+	public static async create(device: HIDDevice): Promise<XencelabsQuickKeysDevice> {
+		const wrappedDevice = new XencelabsQuickKeysDevice(device)
 
 		// Ask the device to stream presses
 		await wrappedDevice.subscribeToKeyEvents()
@@ -146,8 +146,8 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 		}
 	}
 
-	public async setTextOrientation(orientation: XenceQuickKeysOrientation): Promise<void> {
-		if (!Object.values(XenceQuickKeysOrientation).includes(orientation)) {
+	public async setDisplayOrientation(orientation: XencelabsQuickKeysDisplayOrientation): Promise<void> {
+		if (!Object.values(XencelabsQuickKeysDisplayOrientation).includes(orientation)) {
 			throw new TypeError('Expected a valid orientation')
 		}
 
@@ -161,8 +161,8 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 		return this.device.sendReports([buffer])
 	}
 
-	public async setDisplayBrightness(brightness: XenceQuickKeysDisplayBrightness): Promise<void> {
-		if (!Object.values(XenceQuickKeysDisplayBrightness).includes(brightness)) {
+	public async setDisplayBrightness(brightness: XencelabsQuickKeysDisplayBrightness): Promise<void> {
+		if (!Object.values(XencelabsQuickKeysDisplayBrightness).includes(brightness)) {
 			throw new TypeError('Expected a valid brightness')
 		}
 
@@ -178,8 +178,8 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 		return this.device.sendReports([buffer])
 	}
 
-	public async setWheelSpeed(speed: XenceQuickKeysWheelSpeed): Promise<void> {
-		if (!Object.values(XenceQuickKeysWheelSpeed).includes(speed)) {
+	public async setWheelSpeed(speed: XencelabsQuickKeysWheelSpeed): Promise<void> {
+		if (!Object.values(XencelabsQuickKeysWheelSpeed).includes(speed)) {
 			throw new TypeError('Expected a valid speed')
 		}
 
