@@ -52,6 +52,6 @@ export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 export async function openDevice(browserDevice: HIDDevice): Promise<XenceQuickKeysWeb> {
 	await browserDevice.open()
 
-	const device = new XenceQuickKeysDevice(new WebHIDDevice(browserDevice))
+	const device = await XenceQuickKeysDevice.create(new WebHIDDevice(browserDevice))
 	return new XenceQuickKeysWeb(device)
 }

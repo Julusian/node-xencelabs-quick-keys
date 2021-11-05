@@ -12,20 +12,34 @@ import {
 } from './types'
 
 const keyCount = 10
+const textKeyCount = 8
 
 export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> implements XenceQuickKeys {
 	protected readonly device: HIDDevice
 	private readonly keyState: boolean[]
 
-	constructor(device: HIDDevice) {
+	public static async create(device: HIDDevice): Promise<XenceQuickKeysDevice> {
+		const wrappedDevice = new XenceQuickKeysDevice(device)
+
+		// Ask the device to stream presses
+		await wrappedDevice.subscribeToKeyEvents()
+
+		// Now setup the hid events
+		wrappedDevice.subscribeToHIDEvents()
+
+		return wrappedDevice
+	}
+
+	private constructor(device: HIDDevice) {
 		super()
 
 		this.device = device
 
 		this.keyState = new Array(keyCount).fill(false)
+	}
 
+	private subscribeToHIDEvents(): void {
 		this.device.on('data', (reportId, data) => {
-			console.log(reportId, data)
 			if (reportId === 0x02 && data.readUInt8(0) === 0xf0) {
 				const wheelByte = data.readUInt8(6)
 				if (wheelByte > 0) {
@@ -50,10 +64,6 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 					}
 				}
 			}
-		})
-
-		this.subscribeToKeyEvents().catch((e) => {
-			this.emit('error', e)
 		})
 
 		this.device.on('error', (err) => {
@@ -90,7 +100,9 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 	}
 
 	public async setKeyText(keyIndex: KeyIndex, text: string): Promise<void> {
-		this.checkValidKeyIndex(keyIndex)
+		if (keyIndex < 0 || keyIndex >= textKeyCount) {
+			throw new TypeError(`Expected a valid keyIndex 0 - ${textKeyCount - 1}`)
+		}
 
 		if (typeof text !== 'string' || text.length > 8)
 			throw new TypeError(`Expected a valid label of up to 8 characters`)

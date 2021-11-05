@@ -1,70 +1,159 @@
-import { readFixtureJSON } from './helpers'
-import { DEVICE_MODELS, StreamDeck } from '../'
-import { DeviceModelId, OpenStreamDeckOptions } from '../models'
+import {
+	XenceQuickKeys,
+	XenceQuickKeysDevice,
+	WheelEvent,
+	XenceQuickKeysDisplayBrightness,
+	XenceQuickKeysOrientation,
+	XenceQuickKeysWheelSpeed,
+} from '../'
 import { DummyHID } from './hid'
-import { EncodeJPEGHelper } from '../device'
 
-function openStreamDeck(path: string, deviceModel: DeviceModelId, userOptions?: OpenStreamDeckOptions): StreamDeck {
-	const encodeJpegMock: jest.MockedFunction<EncodeJPEGHelper> = jest.fn((_b: Buffer, _w: number, _h: number) => {
-		throw new Error('Not implemented')
-	})
-	const options: Required<OpenStreamDeckOptions> = {
-		useOriginalKeyOrder: false,
-		encodeJPEG: encodeJpegMock,
-		...userOptions,
-	}
+async function openMockDevice(path: string): Promise<XenceQuickKeys> {
+	const device = new DummyHID(path)
 
-	const model = DEVICE_MODELS.find((m) => m.id === deviceModel)
-	if (!model) {
-		throw new Error('Stream Deck is of unexpected type.')
-	}
+	// swap the sendReports function, to supress the one that is emitted during connection
+	const oldFn = device.sendReports
+	const mockedFn = ((device as any).sendReports = jest.fn())
 
-	const device = new DummyHID(path, encodeJpegMock)
-	return new model.class(device, options || {})
+	const result = await XenceQuickKeysDevice.create(device)
+
+	expect(mockedFn).toHaveBeenCalledTimes(1)
+	device.sendReports = oldFn
+	return result
 }
 
-function runForDevice(path: string, model: DeviceModelId): void {
-	let streamDeck: StreamDeck
-	function getDevice(sd?: StreamDeck): DummyHID {
-		return (sd || (streamDeck as any)).device
+describe('Xencelabs Quick Keys', () => {
+	const devicePath = 'some_random_path_here'
+	let quickKeys: XenceQuickKeys
+	function getDevice(dev?: XenceQuickKeys): DummyHID {
+		return (dev || (quickKeys as any)).device
 	}
 
-	beforeEach(() => {
-		streamDeck = openStreamDeck(path, model, { useOriginalKeyOrder: true })
+	beforeEach(async () => {
+		quickKeys = await openMockDevice(devicePath)
+	})
+
+	test('constructor uses the provided devicePath', async () => {
+		const mockDevice = await openMockDevice(devicePath)
+		const device = getDevice(mockDevice)
+		expect(device.path).toEqual(devicePath)
+	})
+
+	function emitFakeData(device: DummyHID, buttons1: number, buttons2: number, wheel: number) {
+		device.emit('data', 0x02, Buffer.from([0xf0, buttons1, buttons2, 0x01, 0x01, 0x01, wheel]))
+	}
+
+	test('wheel events', () => {
+		const downSpy = jest.fn()
+		const upSpy = jest.fn()
+		const wheelSpy = jest.fn()
+		quickKeys.on('up', upSpy)
+		quickKeys.on('down', downSpy)
+		quickKeys.on('wheel', wheelSpy)
+
+		const device = getDevice()
+		emitFakeData(device, 0x01, 0x01, 0x01)
+		emitFakeData(device, 0x01, 0x01, 0x02)
+		emitFakeData(device, 0x01, 0x01, 0x08)
+
+		expect(wheelSpy).toHaveBeenCalledTimes(2)
+		expect(downSpy).toHaveBeenCalledTimes(0)
+		expect(upSpy).toHaveBeenCalledTimes(0)
+		expect(wheelSpy).toHaveBeenNthCalledWith(1, WheelEvent.Right)
+		expect(wheelSpy).toHaveBeenNthCalledWith(2, WheelEvent.Left)
+	})
+
+	test('down and up events', () => {
+		const downSpy = jest.fn()
+		const upSpy = jest.fn()
+		const wheelSpy = jest.fn()
+		quickKeys.on('up', upSpy)
+		quickKeys.on('down', downSpy)
+		quickKeys.on('wheel', wheelSpy)
+
+		const device = getDevice()
+		emitFakeData(device, 0x04, 0x00, 0x00)
+		emitFakeData(device, 0x00, 0x00, 0x00)
+
+		expect(downSpy).toHaveBeenCalledTimes(1)
+		expect(upSpy).toHaveBeenCalledTimes(1)
+		expect(wheelSpy).toHaveBeenCalledTimes(0)
+		expect(downSpy).toHaveBeenNthCalledWith(1, 2)
+		expect(upSpy).toHaveBeenNthCalledWith(1, 2)
+	})
+
+	test('down and up events: combined presses', () => {
+		const downSpy = jest.fn()
+		const upSpy = jest.fn()
+		const wheelSpy = jest.fn()
+		quickKeys.on('down', downSpy)
+		quickKeys.on('up', upSpy)
+		quickKeys.on('wheel', wheelSpy)
+
+		const device = getDevice()
+		// Press 1
+		emitFakeData(device, 0x02, 0x00, 0x00)
+		// Press 9
+		emitFakeData(device, 0x02, 0x02, 0x00)
+
+		expect(downSpy).toHaveBeenCalledTimes(2)
+		expect(upSpy).toHaveBeenCalledTimes(0)
+		expect(wheelSpy).toHaveBeenCalledTimes(0)
+
+		// Release both
+		emitFakeData(device, 0x00, 0x00, 0x00)
+
+		expect(downSpy).toHaveBeenCalledTimes(2)
+		expect(upSpy).toHaveBeenCalledTimes(2)
+		expect(wheelSpy).toHaveBeenCalledTimes(0)
+		expect(downSpy).toHaveBeenNthCalledWith(1, 1)
+		expect(upSpy).toHaveBeenNthCalledWith(1, 1)
+		expect(downSpy).toHaveBeenNthCalledWith(2, 9)
+		expect(upSpy).toHaveBeenNthCalledWith(2, 9)
 	})
 
 	test('checkValidKeyIndex', async () => {
-		await expect(() => streamDeck.clearKey(-1)).rejects.toThrow()
-		await expect(() => streamDeck.clearKey(15)).rejects.toThrow()
+		await expect(() => quickKeys.setKeyText(-1, 'a')).rejects.toThrow()
+		await expect(() => quickKeys.setKeyText(15, 'a')).rejects.toThrow()
 	})
 
-	test('clearKey', async () => {
-		const mockedFn = ((streamDeck as any).fillImageRange = jest.fn(() => Promise.resolve()))
-		await streamDeck.clearKey(2)
-		expect(mockedFn).toHaveBeenCalledTimes(1)
-		expect(mockedFn).toHaveBeenNthCalledWith(1, 2, expect.anything(), expect.anything())
+	test('setKeyText throws on non string', async () => {
+		const msg = 'Expected a valid label of up to 8 characters'
+
+		await expect(() => quickKeys.setKeyText(0, 0 as any)).rejects.toThrow(msg)
+		await expect(() => quickKeys.setKeyText(0, null as any)).rejects.toThrow(msg)
+		await expect(() => quickKeys.setKeyText(0, Buffer.alloc(4) as any)).rejects.toThrow(msg)
 	})
 
-	test('clearPanel', async () => {
-		const mockedFn = ((streamDeck as any).fillImageRange = jest.fn(() => Promise.resolve()))
-		await streamDeck.clearPanel()
+	test('setKeyText', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
 
-		const keyCount = streamDeck.NUM_KEYS
-		expect(mockedFn).toHaveBeenCalledTimes(keyCount)
-		for (let i = 0; i < keyCount; i++) {
-			expect(mockedFn).toHaveBeenNthCalledWith(i + 1, i, expect.anything(), expect.anything())
-		}
-	})
+		await quickKeys.setKeyText(0, 'abc')
+		await quickKeys.setKeyText(7, 'hello123')
 
-	test('fillKeyBuffer throws on undersized buffers', async () => {
-		const smallBuffer = Buffer.alloc(1)
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb1, 0x00, 0x01, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 97,
+				0x00, 98, 0x00, 99, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb1, 0x00, 0x08, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 104,
+				0x00, 101, 0x00, 108, 0x00, 108, 0x00, 111, 0x00, 49, 0x00, 50, 0x00, 51, 0x00,
+			]),
+		])
 
-		await expect(() => streamDeck.fillKeyBuffer(0, smallBuffer)).rejects.toThrow('Expected image buffer')
+		await expect(() => quickKeys.setKeyText(0, '012345678')).rejects.toThrow()
+		await expect(() => quickKeys.setKeyText(-1, 'abc')).rejects.toThrow()
+		await expect(() => quickKeys.setKeyText(8, 'abc')).rejects.toThrow()
 	})
 
 	test('forwards error events from the device', () => {
 		const errorSpy = jest.fn()
-		streamDeck.on('error', errorSpy)
+		quickKeys.on('error', errorSpy)
 
 		const device = getDevice()
 		device.emit('error', new Error('Test'))
@@ -73,613 +162,199 @@ function runForDevice(path: string, model: DeviceModelId): void {
 		expect(errorSpy).toHaveBeenNthCalledWith(1, new Error('Test'))
 	})
 
-	if (model !== DeviceModelId.XL && model !== DeviceModelId.ORIGINALV2 && model !== DeviceModelId.ORIGINALMK2) {
-		test('setBrightness', async () => {
-			const device = getDevice()
-			device.sendFeatureReport = jest.fn()
+	test('setDisplayBrightness', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
 
-			await streamDeck.setBrightness(100)
-			await streamDeck.setBrightness(0)
+		await quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full)
+		await quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Off)
 
-			expect(device.sendFeatureReport).toHaveBeenCalledTimes(2)
-			// prettier-ignore
-			expect(device.sendFeatureReport).toHaveBeenNthCalledWith(1, Buffer.from([0x05, 0x55, 0xaa, 0xd1, 0x01, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-			// prettier-ignore
-			expect(device.sendFeatureReport).toHaveBeenNthCalledWith(2, Buffer.from([0x05, 0x55, 0xaa, 0xd1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb1, 0x0a, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb1, 0x0a, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
 
-			await expect(() => streamDeck.setBrightness(101)).rejects.toThrow()
-			await expect(() => streamDeck.setBrightness(-1)).rejects.toThrow()
-		})
+		await expect(() => quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full + 1)).rejects.toThrow()
+		await expect(() => quickKeys.setDisplayBrightness(-1)).rejects.toThrow()
+	})
 
-		test('resetToLogo', async () => {
-			const device = getDevice()
-			device.sendFeatureReport = jest.fn()
+	test('setWheelSpeed', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
 
-			await streamDeck.resetToLogo()
+		await quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Fastest)
+		await quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Slowest)
 
-			expect(device.sendFeatureReport).toHaveBeenCalledTimes(1)
-			// prettier-ignore
-			expect(device.sendFeatureReport).toHaveBeenNthCalledWith(1, Buffer.from([0x0B, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		})
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb4, 0x04, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb4, 0x04, 0x01, 0x01, 0x05, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
 
-		test('firmwareVersion', async () => {
-			const device = getDevice()
-			device.getFeatureReport = async (): Promise<Buffer> => {
-				return Buffer.from([4, 85, 170, 212, 4, 49, 46, 48, 46, 49, 55, 48, 49, 51, 51, 0, 0])
-			}
+		await expect(() => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Fastest - 1)).rejects.toThrow()
+		await expect(() => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Slowest + 1)).rejects.toThrow()
+	})
 
-			const firmware = await streamDeck.getFirmwareVersion()
-			expect(firmware).toEqual('1.0.170133')
-		})
+	test('setTextOrientation', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
 
-		test('serialNumber', async () => {
-			const device = getDevice()
-			device.getFeatureReport = async (): Promise<Buffer> => {
-				return Buffer.from([3, 85, 170, 211, 3, 65, 76, 51, 55, 71, 49, 65, 48, 50, 56, 52, 48])
-			}
+		await quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate0)
+		await quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate270)
 
-			const firmware = await streamDeck.getSerialNumber()
-			expect(firmware).toEqual('AL37G1A02840')
-		})
-	} else {
-		test('setBrightness-jpeg', async () => {
-			const device = getDevice()
-			device.sendFeatureReport = jest.fn()
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb1, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb1, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
 
-			await streamDeck.setBrightness(100)
-			await streamDeck.setBrightness(0)
+		await expect(() => quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate270 + 1)).rejects.toThrow()
+		await expect(() => quickKeys.setTextOrientation(0)).rejects.toThrow()
+	})
 
-			expect(device.sendFeatureReport).toHaveBeenCalledTimes(2)
-			const expected = Buffer.alloc(32, 0)
-			expected[0] = 0x03
-			expected[1] = 0x08
-			expected[2] = 0x64 // 100%
-			// prettier-ignore
-			expect(device.sendFeatureReport).toHaveBeenNthCalledWith(1, expected)
-			expected[2] = 0x00 // 100%
-			expect(device.sendFeatureReport).toHaveBeenNthCalledWith(2, expected)
+	test('setSleepTimeout', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
 
-			await expect(() => streamDeck.setBrightness(101)).rejects.toThrow()
-			await expect(() => streamDeck.setBrightness(-1)).rejects.toThrow()
-		})
+		await quickKeys.setSleepTimeout(5)
+		await quickKeys.setSleepTimeout(200)
 
-		test('resetToLogo-jpeg', async () => {
-			const device = getDevice()
-			device.sendFeatureReport = jest.fn()
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb4, 0x08, 0x01, 5, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb4, 0x08, 0x01, 200, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
 
-			await streamDeck.resetToLogo()
+		await expect(() => quickKeys.setSleepTimeout(256)).rejects.toThrow()
+		await expect(() => quickKeys.setSleepTimeout(-1)).rejects.toThrow()
+	})
 
-			expect(device.sendFeatureReport).toHaveBeenCalledTimes(1)
-			// prettier-ignore
-			expect(device.sendFeatureReport).toHaveBeenNthCalledWith(1, Buffer.from([0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		})
+	test('setWheelColor', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
 
-		test('firmwareVersion-jpeg', async () => {
-			const device = getDevice()
-			device.getFeatureReport = async (): Promise<Buffer> => {
-				// prettier-ignore
-				return Buffer.from([ 5, 12, 254, 90, 239, 250, 49, 46, 48, 48, 46, 48, 48, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
-			}
+		await quickKeys.setWheelColor(0, 0, 200)
+		await quickKeys.setWheelColor(255, 1, 20)
 
-			const firmware = await streamDeck.getFirmwareVersion()
-			expect(firmware).toEqual('1.00.004')
-		})
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb4, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 200, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb4, 0x01, 0x01, 0x00, 0x00, 255, 1, 20, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
 
-		test('serialNumber-jpeg', async () => {
-			const device = getDevice()
-			device.getFeatureReport = async (): Promise<Buffer> => {
-				// prettier-ignore
-				return Buffer.from([ 6, 12, 67, 76, 49, 56, 73, 49, 65, 48, 48, 57, 49, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
-			}
+		await expect(() => quickKeys.setWheelColor(0, 0, -1)).rejects.toThrow()
+		await expect(() => quickKeys.setWheelColor(0, 0, 256)).rejects.toThrow()
+	})
 
-			const firmware = await streamDeck.getSerialNumber()
-			expect(firmware).toEqual('CL18I1A00913')
-		})
-	}
+	test('showOverlayText', async () => {
+		const device = getDevice()
+		device.sendReports = jest.fn()
+
+		await quickKeys.showOverlayText(200, 'abc')
+		await quickKeys.showOverlayText(7, '01234567890123456789012345678901')
+
+		expect(device.sendReports).toHaveBeenCalledTimes(2)
+		expect(device.sendReports).toHaveBeenNthCalledWith(1, [
+			Buffer.from([
+				0x02, 0xb1, 0x05, 200, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 97, 0x00,
+				98, 0x00, 99, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+			Buffer.from([
+				0x02, 0xb1, 0x06, 200, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			]),
+		])
+		expect(device.sendReports).toHaveBeenNthCalledWith(2, [
+			Buffer.from([
+				0x02, 0xb1, 0x05, 7, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 48, 0x00,
+				49, 0x00, 50, 0x00, 51, 0x00, 52, 0x00, 53, 0x00, 54, 0x00, 55, 0x00,
+			]),
+			Buffer.from([
+				0x02, 0xb1, 0x06, 7, 0x00, 0x10, 0x01, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 56, 0x00,
+				57, 0x00, 48, 0x00, 49, 0x00, 50, 0x00, 51, 0x00, 52, 0x00, 53, 0x00,
+			]),
+			Buffer.from([
+				0x02, 0xb1, 0x06, 7, 0x00, 0x10, 0x01, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 54, 0x00,
+				55, 0x00, 56, 0x00, 57, 0x00, 48, 0x00, 49, 0x00, 50, 0x00, 51, 0x00,
+			]),
+			Buffer.from([
+				0x02, 0xb1, 0x06, 7, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa, 52, 0x00,
+				53, 0x00, 54, 0x00, 55, 0x00, 56, 0x00, 57, 0x00, 48, 0x00, 49, 0x00,
+			]),
+		])
+
+		await expect(() => quickKeys.showOverlayText(1, '012345678901234567890123456789012')).rejects.toThrow()
+		await expect(() => quickKeys.showOverlayText(0, 'abc')).rejects.toThrow()
+		await expect(() => quickKeys.showOverlayText(256, 'abc')).rejects.toThrow()
+	})
+
+	// 		test('firmwareVersion', async () => {
+	// 			const device = getDevice()
+	// 			device.getFeatureReport = async (): Promise<Buffer> => {
+	// 				return Buffer.from([4, 85, 170, 212, 4, 49, 46, 48, 46, 49, 55, 48, 49, 51, 51, 0, 0])
+	// 			}
+
+	// 			const firmware = await quickKeys.getFirmwareVersion()
+	// 			expect(firmware).toEqual('1.0.170133')
+	// 		})
+
+	// 		test('serialNumber', async () => {
+	// 			const device = getDevice()
+	// 			device.getFeatureReport = async (): Promise<Buffer> => {
+	// 				return Buffer.from([3, 85, 170, 211, 3, 65, 76, 51, 55, 71, 49, 65, 48, 50, 56, 52, 48])
+	// 			}
+
+	// 			const firmware = await quickKeys.getSerialNumber()
+	// 			expect(firmware).toEqual('AL37G1A02840')
+	// 		})
 
 	test('close', async () => {
 		const device = getDevice()
 		device.close = jest.fn()
 
-		await streamDeck.close()
+		await quickKeys.close()
 
 		expect(device.close).toHaveBeenCalledTimes(1)
-	})
-
-	test('fillPanelBuffer', async () => {
-		const buffer = Buffer.alloc(streamDeck.NUM_KEYS * streamDeck.ICON_BYTES)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await streamDeck.fillPanelBuffer(buffer)
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(streamDeck.NUM_KEYS)
-
-		const stride = streamDeck.KEY_COLUMNS * streamDeck.ICON_SIZE * 3
-		for (let i = 0; i < streamDeck.NUM_KEYS; i++) {
-			expect(fillKeyBufferMock).toHaveBeenCalledWith(i, expect.any(Buffer), {
-				format: 'rgb',
-				offset: expect.any(Number),
-				stride,
-			})
-			// Buffer has to be seperately as a deep equality check is really slow
-			expect(fillKeyBufferMock.mock.calls[i][1]).toBe(buffer)
-		}
-	})
-
-	test('fillPanelBuffer with format', async () => {
-		const buffer = Buffer.alloc(streamDeck.NUM_KEYS * streamDeck.ICON_PIXELS * 4)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await streamDeck.fillPanelBuffer(buffer, { format: 'bgra' })
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(streamDeck.NUM_KEYS)
-
-		const stride = streamDeck.KEY_COLUMNS * streamDeck.ICON_SIZE * 4
-		for (let i = 0; i < streamDeck.NUM_KEYS; i++) {
-			expect(fillKeyBufferMock).toHaveBeenCalledWith(i, expect.any(Buffer), {
-				format: 'bgra',
-				offset: expect.any(Number),
-				stride,
-			})
-			// Buffer has to be seperately as a deep equality check is really slow
-			expect(fillKeyBufferMock.mock.calls[i][1]).toBe(buffer)
-		}
-	})
-
-	test('fillPanelBuffer bad format', async () => {
-		const buffer = Buffer.alloc(streamDeck.NUM_KEYS * streamDeck.ICON_BYTES)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await expect(() => streamDeck.fillPanelBuffer(buffer, { format: 'abc' as any })).rejects.toThrow()
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(0)
-	})
-
-	test('fillPanelBuffer bad buffer', async () => {
-		const buffer = Buffer.alloc(100)
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await expect(() => streamDeck.fillPanelBuffer(buffer)).rejects.toThrow()
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(0)
-	})
-
-	test('fillKeyBuffer', async () => {
-		const buffer = Buffer.alloc(streamDeck.ICON_BYTES)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await streamDeck.fillKeyBuffer(2, buffer)
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(1)
-		expect(fillKeyBufferMock).toHaveBeenCalledWith(2, expect.any(Buffer), {
-			format: 'rgb',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 3,
-		})
-		// Buffer has to be seperately as a deep equality check is really slow
-		expect(fillKeyBufferMock.mock.calls[0][1]).toBe(buffer)
-	})
-
-	test('fillKeyBuffer with format', async () => {
-		const buffer = Buffer.alloc(streamDeck.ICON_PIXELS * 4)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await streamDeck.fillKeyBuffer(2, buffer, { format: 'rgba' })
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(1)
-		expect(fillKeyBufferMock).toHaveBeenCalledWith(2, expect.any(Buffer), {
-			format: 'rgba',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 4,
-		})
-		// Buffer has to be seperately as a deep equality check is really slow
-		expect(fillKeyBufferMock.mock.calls[0][1]).toBe(buffer)
-	})
-
-	test('fillKeyBuffer bad key', async () => {
-		const buffer = Buffer.alloc(streamDeck.ICON_BYTES)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await expect(() => streamDeck.fillKeyBuffer(-1, buffer)).rejects.toThrow()
-		await expect(() => streamDeck.fillKeyBuffer(streamDeck.NUM_KEYS + 1, buffer)).rejects.toThrow()
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(0)
-	})
-
-	test('fillKeyBuffer bad format', async () => {
-		const buffer = Buffer.alloc(streamDeck.ICON_BYTES)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await expect(() => streamDeck.fillKeyBuffer(1, buffer, { format: 'abc' as any })).rejects.toThrow()
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(0)
-	})
-
-	test('fillKeyBuffer bad buffer', async () => {
-		const buffer = Buffer.alloc(100)
-
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await expect(() => streamDeck.fillKeyBuffer(2, buffer)).rejects.toThrow()
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(0)
-	})
-
-	test('fillKeyColor', async () => {
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await streamDeck.fillKeyColor(4, 123, 255, 86)
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(1)
-		expect(fillKeyBufferMock).toHaveBeenCalledWith(4, expect.any(Buffer), {
-			format: 'rgb',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 3,
-		})
-		// console.log(JSON.stringify(bufferToIntArray(fillKeyBufferMock.mock.calls[0][1])))
-		expect(fillKeyBufferMock.mock.calls[0][1]).toEqual(
-			readFixtureJSON(`fillColor-buffer-${streamDeck.ICON_SIZE}.json`)
-		)
-	})
-
-	test('fillKeyColor bad rgb', async () => {
-		await expect(() => streamDeck.fillKeyColor(0, 256, 0, 0)).rejects.toThrow()
-		await expect(() => streamDeck.fillKeyColor(0, 0, 256, 0)).rejects.toThrow()
-		await expect(() => streamDeck.fillKeyColor(0, 0, 0, 256)).rejects.toThrow()
-		await expect(() => streamDeck.fillKeyColor(0, -1, 0, 0)).rejects.toThrow()
-	})
-
-	test('fillKeyColor bad key', async () => {
-		await expect(() => streamDeck.fillKeyColor(-1, 0, 0, 0)).rejects.toThrow()
-		await expect(() => streamDeck.fillKeyColor(streamDeck.NUM_KEYS + 1, 0, 256, 0)).rejects.toThrow()
-	})
-}
-
-describe('StreamDeck', () => {
-	const devicePath = 'some_random_path_here'
-	let streamDeck: StreamDeck
-	function getDevice(sd?: StreamDeck): DummyHID {
-		return (sd || (streamDeck as any)).device
-	}
-
-	beforeEach(() => {
-		streamDeck = openStreamDeck(devicePath, DeviceModelId.ORIGINAL, { useOriginalKeyOrder: true })
-	})
-
-	test('constructor uses the provided devicePath', () => {
-		const streamDeck2 = openStreamDeck(devicePath, DeviceModelId.ORIGINAL)
-		const device = getDevice(streamDeck2)
-		expect(device.path).toEqual(devicePath)
-		expect(streamDeck2.MODEL).toEqual(DeviceModelId.ORIGINAL)
-	})
-
-	runForDevice(devicePath, DeviceModelId.ORIGINAL)
-
-	test('fillImage', async () => {
-		const device = getDevice()
-		const writeFn: jest.Mock<Promise<void>, [Buffer[]]> = (device.sendReports = jest.fn())
-		expect(writeFn).toHaveBeenCalledTimes(0)
-		await streamDeck.fillKeyBuffer(0, readFixtureJSON('fillImage-sample-icon-72.json'))
-
-		expect(writeFn.mock.calls).toMatchSnapshot()
-	})
-
-	test('down and up events', () => {
-		const downSpy = jest.fn()
-		const upSpy = jest.fn()
-		streamDeck.on('up', upSpy)
-		streamDeck.on('down', downSpy)
-
-		const device = getDevice()
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(1)
-		expect(upSpy).toHaveBeenCalledTimes(1)
-		expect(downSpy).toHaveBeenNthCalledWith(1, 0)
-		expect(upSpy).toHaveBeenNthCalledWith(1, 0)
-	})
-
-	test('down and up events: combined presses', () => {
-		const downSpy = jest.fn()
-		const upSpy = jest.fn()
-		streamDeck.on('down', downSpy)
-		streamDeck.on('up', upSpy)
-
-		const device = getDevice()
-		// Press 1
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// Press 8
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(2)
-		expect(upSpy).toHaveBeenCalledTimes(0)
-
-		// Release both
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(2)
-		expect(upSpy).toHaveBeenCalledTimes(2)
-		expect(downSpy).toHaveBeenNthCalledWith(1, 1)
-		expect(upSpy).toHaveBeenNthCalledWith(1, 1)
-		expect(downSpy).toHaveBeenNthCalledWith(2, 8)
-		expect(upSpy).toHaveBeenNthCalledWith(2, 8)
-	})
-})
-
-describe('StreamDeck (Flipped keymap)', () => {
-	const devicePath = 'some_random_path_here'
-	let streamDeck: StreamDeck
-	function getDevice(sd?: StreamDeck): DummyHID {
-		return (sd || (streamDeck as any)).device
-	}
-
-	beforeEach(() => {
-		streamDeck = openStreamDeck(devicePath, DeviceModelId.ORIGINAL, { useOriginalKeyOrder: false })
-	})
-
-	test('fillKeyColor', async () => {
-		const fillKeyBufferMock = ((streamDeck as any).fillImageRange = jest.fn())
-		await streamDeck.fillKeyColor(0, 1, 2, 3)
-		await streamDeck.fillKeyColor(4, 1, 2, 3)
-		await streamDeck.fillKeyColor(7, 1, 2, 3)
-		await streamDeck.fillKeyColor(14, 1, 2, 3)
-
-		expect(fillKeyBufferMock).toHaveBeenCalledTimes(4)
-		expect(fillKeyBufferMock).toHaveBeenNthCalledWith(1, 4, expect.any(Buffer), {
-			format: 'rgb',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 3,
-		})
-		expect(fillKeyBufferMock).toHaveBeenNthCalledWith(2, 0, expect.any(Buffer), {
-			format: 'rgb',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 3,
-		})
-		expect(fillKeyBufferMock).toHaveBeenNthCalledWith(3, 7, expect.any(Buffer), {
-			format: 'rgb',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 3,
-		})
-		expect(fillKeyBufferMock).toHaveBeenNthCalledWith(4, 10, expect.any(Buffer), {
-			format: 'rgb',
-			offset: 0,
-			stride: streamDeck.ICON_SIZE * 3,
-		})
-	})
-
-	test('down and up events', () => {
-		const downSpy = jest.fn()
-		const upSpy = jest.fn()
-		streamDeck.on('down', downSpy)
-		streamDeck.on('up', upSpy)
-
-		const device = getDevice()
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(2)
-		expect(upSpy).toHaveBeenCalledTimes(2)
-		expect(downSpy).toHaveBeenNthCalledWith(1, 4)
-		expect(upSpy).toHaveBeenNthCalledWith(1, 4)
-		expect(downSpy).toHaveBeenNthCalledWith(2, 8)
-		expect(upSpy).toHaveBeenNthCalledWith(2, 8)
-	})
-})
-
-describe('StreamDeck Mini', () => {
-	const devicePath = 'some_path_for_mini'
-	let streamDeck: StreamDeck
-	function getDevice(sd?: StreamDeck): DummyHID {
-		return (sd || (streamDeck as any)).device
-	}
-
-	beforeEach(() => {
-		streamDeck = openStreamDeck(devicePath, DeviceModelId.MINI)
-	})
-
-	test('constructor uses the provided devicePath', () => {
-		const streamDeck2 = openStreamDeck(devicePath, DeviceModelId.MINI)
-		const device = getDevice(streamDeck2)
-		expect(device.path).toEqual(devicePath)
-		expect(streamDeck2.MODEL).toEqual(DeviceModelId.MINI)
-	})
-
-	runForDevice(devicePath, DeviceModelId.MINI)
-
-	test('fillImage', async () => {
-		const device = getDevice()
-		const writeFn: jest.Mock<Promise<void>, [Buffer[]]> = (device.sendReports = jest.fn())
-		expect(writeFn).toHaveBeenCalledTimes(0)
-		await streamDeck.fillKeyBuffer(0, readFixtureJSON('fillImage-sample-icon-80.json'))
-
-		expect(writeFn.mock.calls).toMatchSnapshot()
-	})
-
-	test('down and up events', () => {
-		const downSpy = jest.fn()
-		const upSpy = jest.fn()
-		streamDeck.on('down', downSpy)
-		streamDeck.on('up', upSpy)
-
-		const device = getDevice()
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(1)
-		expect(upSpy).toHaveBeenCalledTimes(1)
-		expect(downSpy).toHaveBeenNthCalledWith(1, 0)
-		expect(upSpy).toHaveBeenNthCalledWith(1, 0)
-	})
-})
-
-describe('StreamDeck XL', () => {
-	const devicePath = 'some_path_for_xl'
-	let streamDeck: StreamDeck
-	function getDevice(sd?: StreamDeck): DummyHID {
-		return (sd || (streamDeck as any)).device
-	}
-
-	beforeEach(() => {
-		streamDeck = openStreamDeck(devicePath, DeviceModelId.XL)
-	})
-
-	test('constructor uses the provided devicePath', () => {
-		const streamDeck2 = openStreamDeck(devicePath, DeviceModelId.XL)
-		const device = getDevice(streamDeck2)
-		expect(device.path).toEqual(devicePath)
-		expect(streamDeck2.MODEL).toEqual(DeviceModelId.XL)
-	})
-
-	runForDevice(devicePath, DeviceModelId.XL)
-
-	test('setBrightness', async () => {
-		const device = getDevice()
-		device.sendFeatureReport = jest.fn()
-
-		await streamDeck.setBrightness(100)
-		await streamDeck.setBrightness(0)
-
-		expect(device.sendFeatureReport).toHaveBeenCalledTimes(2)
-		const expected = Buffer.alloc(32, 0)
-		expected[0] = 0x03
-		expected[1] = 0x08
-		expected[2] = 0x64 // 100%
-		// prettier-ignore
-		expect(device.sendFeatureReport).toHaveBeenNthCalledWith(1, expected)
-		expected[2] = 0x00 // 100%
-		expect(device.sendFeatureReport).toHaveBeenNthCalledWith(2, expected)
-
-		await expect(() => streamDeck.setBrightness(101)).rejects.toThrow()
-		await expect(() => streamDeck.setBrightness(-1)).rejects.toThrow()
-	})
-
-	test('resetToLogo', async () => {
-		const device = getDevice()
-		device.sendFeatureReport = jest.fn()
-
-		await streamDeck.resetToLogo()
-
-		expect(device.sendFeatureReport).toHaveBeenCalledTimes(1)
-		// prettier-ignore
-		expect(device.sendFeatureReport).toHaveBeenNthCalledWith(1, Buffer.from([0x03, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-	})
-
-	test('firmwareVersion', async () => {
-		const device = getDevice()
-		device.getFeatureReport = async (): Promise<Buffer> => {
-			// prettier-ignore
-			return Buffer.from([ 5, 12, 254, 90, 239, 250, 49, 46, 48, 48, 46, 48, 48, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
-		}
-
-		const firmware = await streamDeck.getFirmwareVersion()
-		expect(firmware).toEqual('1.00.004')
-	})
-
-	test('serialNumber', async () => {
-		const device = getDevice()
-		device.getFeatureReport = async (): Promise<Buffer> => {
-			// prettier-ignore
-			return Buffer.from([ 6, 12, 67, 76, 49, 56, 73, 49, 65, 48, 48, 57, 49, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
-		}
-
-		const firmware = await streamDeck.getSerialNumber()
-		expect(firmware).toEqual('CL18I1A00913')
-	})
-
-	test('fillImage', async () => {
-		const device = getDevice()
-		device.encodeJPEG.mockImplementationOnce(async (buffer: Buffer) => {
-			const start = buffer.length / 8
-			return buffer.slice(start, start * 2)
-		})
-
-		const writeFn: jest.Mock<Promise<void>, [Buffer[]]> = (device.sendReports = jest.fn())
-		expect(writeFn).toHaveBeenCalledTimes(0)
-		await streamDeck.fillKeyBuffer(0, readFixtureJSON('fillImage-sample-icon-96.json'))
-
-		expect(writeFn.mock.calls).toMatchSnapshot()
-	})
-
-	test('down and up events', () => {
-		const downSpy = jest.fn()
-		const upSpy = jest.fn()
-		streamDeck.on('down', downSpy)
-		streamDeck.on('up', upSpy)
-
-		const device = getDevice()
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(1)
-		expect(upSpy).toHaveBeenCalledTimes(1)
-		expect(downSpy).toHaveBeenNthCalledWith(1, 0)
-		expect(upSpy).toHaveBeenNthCalledWith(1, 0)
-	})
-})
-
-describe('StreamDeck Original V2', () => {
-	const devicePath = 'some_path_for_v2'
-	let streamDeck: StreamDeck
-	function getDevice(sd?: StreamDeck): DummyHID {
-		return (sd || (streamDeck as any)).device
-	}
-
-	beforeEach(() => {
-		streamDeck = openStreamDeck(devicePath, DeviceModelId.ORIGINALV2)
-	})
-
-	test('constructor uses the provided devicePath', () => {
-		const streamDeck2 = openStreamDeck(devicePath, DeviceModelId.ORIGINALV2)
-		const device = getDevice(streamDeck2)
-		expect(device.path).toEqual(devicePath)
-		expect(streamDeck2.MODEL).toEqual(DeviceModelId.ORIGINALV2)
-	})
-
-	runForDevice(devicePath, DeviceModelId.ORIGINALV2)
-
-	test('fillImage', async () => {
-		const device = getDevice()
-		device.encodeJPEG.mockImplementationOnce(async (buffer: Buffer) => {
-			const start = buffer.length / 8
-			return buffer.slice(start, start * 2)
-		})
-
-		const writeFn: jest.Mock<Promise<void>, [Buffer[]]> = (device.sendReports = jest.fn())
-		expect(writeFn).toHaveBeenCalledTimes(0)
-		await streamDeck.fillKeyBuffer(0, readFixtureJSON('fillImage-sample-icon-72.json'))
-
-		expect(writeFn.mock.calls).toMatchSnapshot()
-	})
-
-	test('down and up events', () => {
-		const downSpy = jest.fn()
-		const upSpy = jest.fn()
-		streamDeck.on('down', downSpy)
-		streamDeck.on('up', upSpy)
-
-		const device = getDevice()
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-		// prettier-ignore
-		device.emit('input', Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
-		expect(downSpy).toHaveBeenCalledTimes(1)
-		expect(upSpy).toHaveBeenCalledTimes(1)
-		expect(downSpy).toHaveBeenNthCalledWith(1, 0)
-		expect(upSpy).toHaveBeenNthCalledWith(1, 0)
 	})
 })

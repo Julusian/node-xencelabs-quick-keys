@@ -9,149 +9,89 @@ import { devices, HID } from 'node-hid'
 mocked(HID).mockImplementation((path: any) => new DummyHID(path))
 
 // Must be required after we register a mock for `node-hid`.
-import { getStreamDeckInfo, listStreamDecks, openStreamDeck } from '../'
+import { DEVICE_INTERFACE, getXenceQuickKeysInfo, listXenceQuickKeys, openXenceQuickKeys } from '../'
+import { PRODUCT_IDS, VENDOR_ID } from '@xencelabs-quick-keys/core'
 
-describe('StreamDeck Devices', () => {
-	test('no devices', () => {
-		mocked(devices).mockImplementation(() => [])
-
-		expect(listStreamDecks()).toEqual([])
-	})
-	test('some devices', () => {
+describe('Xence Quick Keys', () => {
+	function mockDevicesImplementation() {
 		mocked(devices).mockImplementation(() => [
+			...PRODUCT_IDS.map((id) => ({
+				productId: id,
+				vendorId: VENDOR_ID,
+				interface: DEVICE_INTERFACE,
+				path: `path-${id}`,
+				serialNumber: `some-number-${id}`,
+				release: 0,
+			})),
 			{
-				productId: 0x0060,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-original',
-				serialNumber: 'some-number',
+				productId: PRODUCT_IDS[0],
+				vendorId: VENDOR_ID + 1,
+				interface: DEVICE_INTERFACE,
+				path: 'path-bad-vendor',
 				release: 0,
 			},
 			{
-				productId: 0x0060,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-original2',
-				serialNumber: 'some-number-again',
-				release: 0,
-			},
-			{
-				productId: 0x0063,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-mini',
-				release: 0,
-			},
-			{
-				productId: 0x0060,
-				vendorId: 0x0f00,
-				interface: 0,
-				path: 'path-wrog-vendor',
-				release: 0,
-			},
-			{
-				productId: 0x0022,
-				vendorId: 0x0fd9,
-				interface: 0,
+				productId: PRODUCT_IDS[0] + 1000,
+				vendorId: VENDOR_ID,
+				interface: DEVICE_INTERFACE,
 				path: 'path-bad-product',
 				release: 0,
 			},
+			{
+				productId: PRODUCT_IDS[0],
+				vendorId: VENDOR_ID,
+				interface: DEVICE_INTERFACE + 1,
+				path: 'path-wrong-interface',
+				release: 0,
+			},
 		])
+	}
 
-		expect(listStreamDecks()).toEqual([
+	test('no devices', () => {
+		mocked(devices).mockImplementation(() => [])
+
+		expect(listXenceQuickKeys()).toEqual([])
+	})
+	test('some devices', () => {
+		mockDevicesImplementation()
+
+		expect(listXenceQuickKeys()).toEqual([
 			{
-				model: 'original',
-				path: 'path-original',
-				serialNumber: 'some-number',
+				path: 'path-20994',
+				// serialNumber: 'some-number',
 			},
 			{
-				model: 'original',
-				path: 'path-original2',
-				serialNumber: 'some-number-again',
-			},
-			{
-				model: 'mini',
-				path: 'path-mini',
-				serialNumber: undefined,
+				path: 'path-20995',
+				// serialNumber: 'some-number-again',
 			},
 		])
 	})
 	test('info for bad path', () => {
-		mocked(devices).mockImplementation(() => [
-			{
-				productId: 0x0060,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-original',
-				serialNumber: 'some-number',
-				release: 0,
-			},
-			{
-				productId: 0x0022,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-bad-product',
-				release: 0,
-			},
-		])
+		mockDevicesImplementation()
 
-		const info = getStreamDeckInfo('not-a-real-path')
+		const info = getXenceQuickKeysInfo('not-a-real-path')
 		expect(info).toBeFalsy()
 
-		const info2 = getStreamDeckInfo('path-bad-product')
+		const info2 = getXenceQuickKeysInfo('path-bad-product')
 		expect(info2).toBeFalsy()
 	})
 	test('info for good path', () => {
-		mocked(devices).mockImplementation(() => [
-			{
-				productId: 0x0060,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-original',
-				serialNumber: 'some-number',
-				release: 0,
-			},
-			{
-				productId: 0x0060,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-original2',
-				serialNumber: 'some-number-again',
-				release: 0,
-			},
-		])
+		mockDevicesImplementation()
 
-		const info2 = getStreamDeckInfo('path-original2')
+		const info2 = getXenceQuickKeysInfo('path-20994')
 		expect(info2).toEqual({
-			model: 'original',
-			path: 'path-original2',
-			serialNumber: 'some-number-again',
+			path: 'path-20994',
+			// serialNumber: 'some-number-again',
 		})
 	})
-	test('create for bad path', () => {
-		mocked(devices).mockImplementation(() => [
-			{
-				productId: 0x0060,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-original',
-				serialNumber: 'some-number',
-				release: 0,
-			},
-			{
-				productId: 0x0022,
-				vendorId: 0x0fd9,
-				interface: 0,
-				path: 'path-bad-product',
-				release: 0,
-			},
-		])
+	test('create for bad path', async () => {
+		mockDevicesImplementation()
 
-		expect(() => openStreamDeck('not-a-real-path')).toThrowError(
+		await expect(() => openXenceQuickKeys('not-a-real-path')).rejects.toThrowError(
 			new Error(`Device "not-a-real-path" was not found`)
 		)
 
-		expect(() => openStreamDeck('path-bad-product')).toThrowError(
+		await expect(() => openXenceQuickKeys('path-bad-product')).rejects.toThrowError(
 			new Error(`Device "path-bad-product" was not found`)
 		)
 	})

@@ -12,7 +12,7 @@ export {
 	XenceQuickKeysDisplayBrightness,
 } from '@xencelabs-quick-keys/core'
 
-const DEVICE_INTERFACE = 2
+export const DEVICE_INTERFACE = 2
 
 /**
  * Scan for and list detected devices
@@ -46,7 +46,7 @@ export function getXenceQuickKeysInfo(path: string): XenceQuickKeysInfo | undefi
  * Open a device
  * @param devicePath The path of the device to open. If not set, the first will be used
  */
-export function openXenceQuickKeys(devicePath?: string): XenceQuickKeys {
+export async function openXenceQuickKeys(devicePath?: string): Promise<XenceQuickKeys> {
 	let foundDevices = listXenceQuickKeys()
 	if (devicePath) {
 		foundDevices = foundDevices.filter((d) => d.path === devicePath)
@@ -61,6 +61,6 @@ export function openXenceQuickKeys(devicePath?: string): XenceQuickKeys {
 	}
 
 	const device = new NodeHIDDevice(foundDevices[0])
-	const rawSteamdeck = new XenceQuickKeysDevice(device)
+	const rawSteamdeck = await XenceQuickKeysDevice.create(device)
 	return new XenceQuickKeysNode(rawSteamdeck)
 }
