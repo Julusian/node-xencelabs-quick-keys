@@ -113,16 +113,16 @@ describe('Xencelabs Quick Keys', () => {
 	})
 
 	test('checkValidKeyIndex', async () => {
-		await expect(() => quickKeys.setKeyText(-1, 'a')).rejects.toThrow()
-		await expect(() => quickKeys.setKeyText(15, 'a')).rejects.toThrow()
+		await expect(async () => quickKeys.setKeyText(-1, 'a')).rejects.toThrow()
+		await expect(async () => quickKeys.setKeyText(15, 'a')).rejects.toThrow()
 	})
 
 	test('setKeyText throws on non string', async () => {
 		const msg = 'Expected a valid label of up to 8 characters'
 
-		await expect(() => quickKeys.setKeyText(0, 0 as any)).rejects.toThrow(msg)
-		await expect(() => quickKeys.setKeyText(0, null as any)).rejects.toThrow(msg)
-		await expect(() => quickKeys.setKeyText(0, Buffer.alloc(4) as any)).rejects.toThrow(msg)
+		await expect(async () => quickKeys.setKeyText(0, 0 as any)).rejects.toThrow(msg)
+		await expect(async () => quickKeys.setKeyText(0, null as any)).rejects.toThrow(msg)
+		await expect(async () => quickKeys.setKeyText(0, Buffer.alloc(4) as any)).rejects.toThrow(msg)
 	})
 
 	test('setKeyText', async () => {
@@ -146,9 +146,9 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.setKeyText(0, '012345678')).rejects.toThrow()
-		await expect(() => quickKeys.setKeyText(-1, 'abc')).rejects.toThrow()
-		await expect(() => quickKeys.setKeyText(8, 'abc')).rejects.toThrow()
+		await expect(async () => quickKeys.setKeyText(0, '012345678')).rejects.toThrow()
+		await expect(async () => quickKeys.setKeyText(-1, 'abc')).rejects.toThrow()
+		await expect(async () => quickKeys.setKeyText(8, 'abc')).rejects.toThrow()
 	})
 
 	test('forwards error events from the device', () => {
@@ -183,8 +183,10 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full + 1)).rejects.toThrow()
-		await expect(() => quickKeys.setDisplayBrightness(-1)).rejects.toThrow()
+		await expect(async () =>
+			quickKeys.setDisplayBrightness(XenceQuickKeysDisplayBrightness.Full + 1)
+		).rejects.toThrow()
+		await expect(async () => quickKeys.setDisplayBrightness(-1)).rejects.toThrow()
 	})
 
 	test('setWheelSpeed', async () => {
@@ -208,8 +210,8 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Fastest - 1)).rejects.toThrow()
-		await expect(() => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Slowest + 1)).rejects.toThrow()
+		await expect(async () => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Fastest - 1)).rejects.toThrow()
+		await expect(async () => quickKeys.setWheelSpeed(XenceQuickKeysWheelSpeed.Slowest + 1)).rejects.toThrow()
 	})
 
 	test('setTextOrientation', async () => {
@@ -233,8 +235,10 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate270 + 1)).rejects.toThrow()
-		await expect(() => quickKeys.setTextOrientation(0)).rejects.toThrow()
+		await expect(async () =>
+			quickKeys.setTextOrientation(XenceQuickKeysOrientation.Rotate270 + 1)
+		).rejects.toThrow()
+		await expect(async () => quickKeys.setTextOrientation(0)).rejects.toThrow()
 	})
 
 	test('setSleepTimeout', async () => {
@@ -258,8 +262,8 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.setSleepTimeout(256)).rejects.toThrow()
-		await expect(() => quickKeys.setSleepTimeout(-1)).rejects.toThrow()
+		await expect(async () => quickKeys.setSleepTimeout(256)).rejects.toThrow()
+		await expect(async () => quickKeys.setSleepTimeout(-1)).rejects.toThrow()
 	})
 
 	test('setWheelColor', async () => {
@@ -283,8 +287,8 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.setWheelColor(0, 0, -1)).rejects.toThrow()
-		await expect(() => quickKeys.setWheelColor(0, 0, 256)).rejects.toThrow()
+		await expect(async () => quickKeys.setWheelColor(0, 0, -1)).rejects.toThrow()
+		await expect(async () => quickKeys.setWheelColor(0, 0, 256)).rejects.toThrow()
 	})
 
 	test('showOverlayText', async () => {
@@ -324,9 +328,9 @@ describe('Xencelabs Quick Keys', () => {
 			]),
 		])
 
-		await expect(() => quickKeys.showOverlayText(1, '012345678901234567890123456789012')).rejects.toThrow()
-		await expect(() => quickKeys.showOverlayText(0, 'abc')).rejects.toThrow()
-		await expect(() => quickKeys.showOverlayText(256, 'abc')).rejects.toThrow()
+		await expect(async () => quickKeys.showOverlayText(1, '012345678901234567890123456789012')).rejects.toThrow()
+		await expect(async () => quickKeys.showOverlayText(0, 'abc')).rejects.toThrow()
+		await expect(async () => quickKeys.showOverlayText(256, 'abc')).rejects.toThrow()
 	})
 
 	test('close', async () => {

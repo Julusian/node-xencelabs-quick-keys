@@ -24,7 +24,7 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 		this.device.checkValidKeyIndex(keyIndex)
 	}
 
-	public close(): Promise<void> {
+	public async close(): Promise<void> {
 		return this.device.close()
 	}
 

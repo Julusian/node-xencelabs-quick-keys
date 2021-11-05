@@ -87,11 +87,11 @@ describe('Xence Quick Keys', () => {
 	test('create for bad path', async () => {
 		mockDevicesImplementation()
 
-		await expect(() => openXenceQuickKeys('not-a-real-path')).rejects.toThrowError(
+		await expect(async () => openXenceQuickKeys('not-a-real-path')).rejects.toThrowError(
 			new Error(`Device "not-a-real-path" was not found`)
 		)
 
-		await expect(() => openXenceQuickKeys('path-bad-product')).rejects.toThrowError(
+		await expect(async () => openXenceQuickKeys('path-bad-product')).rejects.toThrowError(
 			new Error(`Device "path-bad-product" was not found`)
 		)
 	})

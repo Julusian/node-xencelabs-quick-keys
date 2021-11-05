@@ -8,6 +8,9 @@ module.exports = {
 				tsconfigRootDir: __dirname,
 				project: ['./packages/*/tsconfig.json'],
 			},
+			rules: {
+				'@typescript-eslint/promise-function-async': ['error'], // TODO - move to preset
+			},
 		},
 		{
 			files: ['packages/*/examples/**/*.js', 'packages/*/examples/**/*.ts', '**/__tests__/**/*.ts'],

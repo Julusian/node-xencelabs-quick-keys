@@ -27,7 +27,7 @@ export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 			})),
 		})
 		.then(async (browserDevices) => {
-			return Promise.all(browserDevices.map((dev) => openDevice(dev)))
+			return Promise.all(browserDevices.map(async (dev) => openDevice(dev)))
 		})
 }
 
@@ -38,7 +38,7 @@ export async function requestXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 export async function getXenceQuickKeys(): Promise<XenceQuickKeysWeb[]> {
 	// TODO - error handling
 	return navigator.hid.getDevices().then(async (browserDevices) => {
-		return Promise.all(browserDevices.map((dev) => openDevice(dev)))
+		return Promise.all(browserDevices.map(async (dev) => openDevice(dev)))
 	})
 }
 

@@ -71,7 +71,7 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 		})
 	}
 
-	private subscribeToKeyEvents(): Promise<void> {
+	private async subscribeToKeyEvents(): Promise<void> {
 		const buffer = Buffer.alloc(32)
 		buffer.writeUInt8(0x02, 0)
 		buffer.writeUInt8(0xb0, 1)
@@ -86,7 +86,7 @@ export class XenceQuickKeysDevice extends EventEmitter<XenceQuickKeysEvents> imp
 		}
 	}
 
-	public close(): Promise<void> {
+	public async close(): Promise<void> {
 		return this.device.close()
 	}
 
