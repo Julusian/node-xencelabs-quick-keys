@@ -1,0 +1,120 @@
+<html>
+
+<head>
+	<style>
+		.pressed {
+			background-color: pink;
+		}
+
+		.btn {
+			border: 1px solid #000;
+			display: block;
+			width: 40px;
+			height: 40px;
+			text-align: center;
+		}
+
+	</style>
+</head>
+
+<body>
+	<h1>Xencelabs Quick Keys WebHID demo</h1>
+	<h3>Based on <a href="https://github.com/Julusian/node-xencelabs-quick-keys/">@xencelabs-quick-keys</a> <a
+			href="https://www.npmjs.com/package/@xencelabs-quick-keys/webhid">npm</a></h3>
+	<p>Requires Chrome v89+</p>
+	<h3>
+		Note: For linux, you need to ensure udev is setup with the correct device permissions for the hidraw driver.
+	</h3>
+	<p>
+		<a href="#" id="consent-button">Select device</a>
+	</p>
+
+	<p>
+		Wheel Red: <input type="range" min="0" max="255" value="255" id="red-range" />
+	</p>
+	<p>
+		Wheel Green: <input type="range" min="0" max="255" value="0" id="green-range" />
+	</p>
+	<p>
+		Wheel Blue: <input type="range" min="0" max="255" value="0" id="blue-range" />
+	</p>
+
+	<p>
+		Wheel Speed: <input type="range" min="1" max="5" value="3" id="speed-range" />
+	</p>
+
+	<p>
+		Display Brightness:
+		<select id="brightness-select">
+			<option value="3">Full</option>
+			<option value="2">Medium</option>
+			<option value="1">Min</option>
+			<option value="0">Off</option>
+		</select>
+	</p>
+
+	<p>
+		Orientation:
+		<select id="orientation-select">
+			<option value="1">0&#176;</option>
+			<option value="2">90&#176;</option>
+			<option value="3">180&#176;</option>
+			<option value="4">270&#176;</option>
+		</select>
+	</p>
+
+	<p>
+		<table>
+			<tr>
+				<td colspan="5">Note: these are orientation for 0&#176;</td>
+			</tr>
+			<tr>
+				<td rowspan="2">
+					<div class="btn" data-id="8"></div>
+				</td>
+				<td>
+					<input class="textlabel" value="one" data-id="0" />
+				</td>
+				<td>
+					<input class="textlabel" value="two" data-id="1" />
+				</td>
+				<td>
+					<input class="textlabel" value="three" data-id="2" />
+				</td>
+				<td>
+					<input class="textlabel" value="four" data-id="3" />
+				</td>
+				<td rowspan="2">
+					<div class="btn" id="counter" data-id="9">0</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<input class="textlabel" value="five" data-id="4" />
+				</td>
+				<td>
+					<input class="textlabel" value="six" data-id="5" />
+				</td>
+				<td>
+					<input class="textlabel" value="seven" data-id="6" />
+				</td>
+				<td>
+					<input class="textlabel" value="eight" data-id="7" />
+				</td>
+			</tr>
+		</table>
+	</p>
+
+	<p>
+		Overlay:
+		<input id="overlay-duration" type="number" min="0" max="255" value="2" />
+		<input id="overlay-text" type="text" value="This is an overlay!" />
+		<button id="overlay-show">Show</button>
+	</p>
+
+	<div id="log" style="white-space: pre; background: #ffffff;"></div>
+
+	<script src="app.js" type="text/javascript"></script>
+</body>
+
+</html>
