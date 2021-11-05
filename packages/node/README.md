@@ -47,7 +47,7 @@ However, in the event that installation _does_ fail (**or if you are on a platfo
 
 ## Linux
 
-On linux, the udev subsystem blocks access to the StreamDeck without some special configuration.
+On linux, the udev subsystem blocks access to the device without some special configuration.
 Save the following to `/etc/udev/rules.d/50-xencelabs.rules` and reload the rules with `sudo udevadm control --reload-rules`
 
 ```
@@ -62,12 +62,15 @@ Unplug and replug the device and it should be usable
 
 ## Features
 
--   Multiplatform support: Windows 7-10, MacOS, Linux, and even Raspberry Pi!
--   Support for every StreamDeck model (Original, Mini & XL)
+-   Multiplatform support: Windows, MacOS, Linux, and even Raspberry Pi!
 -   Key `down` and key `up` events
--   Fill keys with images or solid RGB colors
--   Fill the entire panel with a single image, spread across all keys
--   Set the Stream Deck brightness
+-   Wheel turn events
+-   Set text labels of buttons
+-   Show text overlays
+-   Set the wheel speed
+-   Set the display orientation
+-   Set the display brightness
+-   Set the wheel color
 -   TypeScript support
 
 ## API
@@ -100,13 +103,13 @@ The StreamDeck type can be found [here](/packages/core/src/models/types.ts#L15)
 ```typescript
 import { openStreamDeck } from '@xencelabs-quick-keys/node'
 
-// Automatically discovers connected Stream Decks, and attaches to the first one.
-// Throws if there are no connected stream decks.
+// Automatically discovers connected devices, and attaches to the first one.
+// Throws if there are no connected devices.
 // You also have the option of providing the devicePath yourself as the first argument to the constructor.
 // For example: const myStreamDeck = new StreamDeck('\\\\?\\hid#vid_05f3&pid_0405&mi_00#7&56cf813&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}')
 // On linux the equivalent would be: const myStreamDeck = new StreamDeck('0001:0021:00')
 // Available devices can be found with listStreamDecks()
-const myStreamDeck = await openStreamDeck() // Will throw an error if no Stream Decks are connected.
+const myStreamDeck = await openStreamDeck() // Will throw an error if no compatible devices are connected.
 
 myStreamDeck.on('down', (keyIndex) => {
 	console.log('key %d down', keyIndex)

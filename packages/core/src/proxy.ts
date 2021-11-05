@@ -56,6 +56,10 @@ export class XenceQuickKeysProxy implements XenceQuickKeys {
 		return this.device.showOverlayText(duration, text)
 	}
 
+	// public getFirmwareVersion(): Promise<string> {
+	// 	return this.device.getFirmwareVersion()
+	// }
+
 	/**
 	 * EventEmitter
 	 */

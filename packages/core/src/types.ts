@@ -103,12 +103,7 @@ export interface XenceQuickKeys extends EventEmitter<XenceQuickKeysEvents> {
 	showOverlayText(duration: number, text: string): Promise<void>
 
 	// /**
-	//  * Get firmware version from Stream Deck
+	//  * Get firmware version from device
 	//  */
 	// getFirmwareVersion(): Promise<string>
-
-	// /**
-	//  * Get serial number from Stream Deck
-	//  */
-	// getSerialNumber(): Promise<string>
 }

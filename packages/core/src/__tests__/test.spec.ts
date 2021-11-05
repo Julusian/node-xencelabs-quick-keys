@@ -329,26 +329,6 @@ describe('Xencelabs Quick Keys', () => {
 		await expect(() => quickKeys.showOverlayText(256, 'abc')).rejects.toThrow()
 	})
 
-	// 		test('firmwareVersion', async () => {
-	// 			const device = getDevice()
-	// 			device.getFeatureReport = async (): Promise<Buffer> => {
-	// 				return Buffer.from([4, 85, 170, 212, 4, 49, 46, 48, 46, 49, 55, 48, 49, 51, 51, 0, 0])
-	// 			}
-
-	// 			const firmware = await quickKeys.getFirmwareVersion()
-	// 			expect(firmware).toEqual('1.0.170133')
-	// 		})
-
-	// 		test('serialNumber', async () => {
-	// 			const device = getDevice()
-	// 			device.getFeatureReport = async (): Promise<Buffer> => {
-	// 				return Buffer.from([3, 85, 170, 211, 3, 65, 76, 51, 55, 71, 49, 65, 48, 50, 56, 52, 48])
-	// 			}
-
-	// 			const firmware = await quickKeys.getSerialNumber()
-	// 			expect(firmware).toEqual('AL37G1A02840')
-	// 		})
-
 	test('close', async () => {
 		const device = getDevice()
 		device.close = jest.fn()

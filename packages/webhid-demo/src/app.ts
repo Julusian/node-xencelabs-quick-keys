@@ -48,7 +48,7 @@ let wheelCount = 0
 const wheelCounter = document.querySelector('#counter')
 
 async function openDevice(device: XenceQuickKeysWeb): Promise<void> {
-	// appendLog(`Device opened. Serial: ${await device.getSerialNumber()} Firmware: ${await device.getFirmwareVersion()}`)
+	appendLog(`Device opened`) //. Firmware: ${await device.getFirmwareVersion()}`)
 
 	device.on('down', (key: number) => {
 		appendLog(`Key ${key} down`)
@@ -105,7 +105,7 @@ if (consentButton) {
 		speedRange.addEventListener('input', () => {
 			const speed = parseInt(speedRange.value) as any as XenceQuickKeysWheelSpeed
 			if (device) {
-				device.setWheelSpeed(6 - speed) // flip the number
+				device.setWheelSpeed(6 - speed).catch(console.error) // flip the number
 			}
 		})
 	}
@@ -117,7 +117,7 @@ if (consentButton) {
 		brightnessSelect.addEventListener('input', () => {
 			const value = parseInt(brightnessSelect.value) as any as XenceQuickKeysDisplayBrightness
 			if (device) {
-				device.setDisplayBrightness(value)
+				device.setDisplayBrightness(value).catch(console.error)
 			}
 		})
 	}
@@ -127,7 +127,7 @@ if (consentButton) {
 		orientationSelect.addEventListener('input', () => {
 			const value = parseInt(orientationSelect.value) as any as XenceQuickKeysOrientation
 			if (device) {
-				device.setTextOrientation(value)
+				device.setTextOrientation(value).catch(console.error)
 			}
 		})
 	}
@@ -136,7 +136,7 @@ if (consentButton) {
 		const durationElm = document.getElementById('overlay-duration') as HTMLInputElement | undefined
 		const textElm = document.getElementById('overlay-text') as HTMLInputElement | undefined
 		if (device && durationElm && textElm) {
-			device.showOverlayText(parseInt(durationElm.value), textElm.value)
+			device.showOverlayText(parseInt(durationElm.value), textElm.value).catch(console.error)
 		}
 	})
 

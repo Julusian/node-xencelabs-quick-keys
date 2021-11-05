@@ -31,7 +31,7 @@ plugins: [
 
 ## Linux
 
-On linux, the udev subsystem blocks access to the StreamDeck without some special configuration.
+On linux, the udev subsystem blocks access to the device without some special configuration.
 Save the following to `/etc/udev/rules.d/50-xencelabs.rules` and reload the rules with `sudo udevadm control --reload-rules`
 
 ```
@@ -47,11 +47,14 @@ Unplug and replug the device and it should be usable
 
 ## Features
 
--   Support for every StreamDeck model (Original, Mini & XL)
 -   Key `down` and key `up` events
--   Fill keys with canvas, images or solid RGB colors
--   Fill the entire panel with a single image, spread across all keys
--   Set the Stream Deck brightness
+-   Wheel turn events
+-   Set text labels of buttons
+-   Show text overlays
+-   Set the wheel speed
+-   Set the display orientation
+-   Set the display brightness
+-   Set the wheel color
 -   TypeScript support
 
 ### Known limitations
