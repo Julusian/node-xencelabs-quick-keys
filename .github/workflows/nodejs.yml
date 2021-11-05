@@ -84,8 +84,8 @@ jobs:
     continue-on-error: true
     timeout-minutes: 15
 
-    # only run for master TODO - enable
-    # if: github.ref == 'refs/heads/master'
+    # only run for main
+    if: github.ref == 'refs/heads/main'
 
     needs:
       - test
