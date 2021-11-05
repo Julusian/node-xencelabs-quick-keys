@@ -1,0 +1,109 @@
+name: Node CI
+
+on: [push]
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm libudev-dev libusb-1.0-0-dev
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: yarn install
+        env:
+          CI: true
+      - run: yarn build
+        env:
+          CI: true
+      - run: yarn lint
+        env:
+          CI: true
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm libudev-dev libusb-1.0-0-dev
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: yarn install
+        env:
+          CI: true
+      - run: yarn validate:dependencies
+        env:
+          CI: true
+
+  test:
+    name: Test on node ${{ matrix.node-version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 15.x]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm libudev-dev libusb-1.0-0-dev
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install
+        env:
+          CI: true
+      - run: yarn unit
+        env:
+          CI: true
+      - run: yarn send-coverage
+        if: matrix.node-version == '14.x'
+        env:
+          CI: true
+
+  publish-demo:
+    name: Publish demo to Github Pages
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 15
+
+    # only run for master TODO - enable
+    # if: github.ref == 'refs/heads/master'
+
+    needs:
+      - test
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Prepare build
+        run: |
+          yarn install
+          yarn build
+        env:
+          CI: true
+      - name: Publish
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./packages/webhid-demo/dist

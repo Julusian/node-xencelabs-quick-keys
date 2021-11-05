@@ -1,0 +1,14 @@
+{
+	"extends": "@sofie-automation/code-standard-preset/ts/tsconfig.lib",
+	"exclude": ["node_modules/**", "src/**/*spec.ts", "src/**/__tests__/*", "src/**/__mocks__/*"],
+	"include": ["scripts/**/*"],
+	"compilerOptions": {
+		"baseUrl": "./packages",
+		"paths": {
+			"*": ["./node_modules/*"],
+			"@xencelabs-quick-keys/core": ["core/src"],
+			"@xencelabs-quick-keys/node": ["node/src"],
+			"@xencelabs-quick-keys/webhid": ["webhid/src"]
+		}
+	}
+}

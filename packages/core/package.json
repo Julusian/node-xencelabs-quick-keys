@@ -1,0 +1,43 @@
+{
+  "name": "@xencelabs-quick-keys/core",
+  "version": "0.0.1",
+  "description": "An npm module for interfacing with the Xencelabs Quick Keys",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://github.com/julusian/node-xencelabs-quick-keys#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julusian/node-xencelabs-quick-keys.git"
+  },
+  "bugs": {
+    "url": "https://github.com/julusian/node-xencelabs-quick-keys/issues"
+  },
+  "author": {
+    "name": "Julian Waller",
+    "email": "git@julusian.co.uk"
+  },
+  "keywords": [
+    "xencelabs",
+    "quick-keys",
+    "quickkeys",
+    "hid",
+    "usb",
+    "hardware",
+    "interface",
+    "controller"
+  ],
+  "scripts": {
+    "build": "rimraf dist && yarn build:main",
+    "build:main": "tsc -p tsconfig.build.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=12.18"
+  },
+  "dependencies": {
+    "eventemitter3": "^4.0.7"
+  }
+}
