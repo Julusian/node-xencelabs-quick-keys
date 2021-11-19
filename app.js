@@ -3679,39 +3679,59 @@ class XencelabsQuickKeysDevice extends EventEmitter {
     }
     static async create(device) {
         const wrappedDevice = new XencelabsQuickKeysDevice(device);
-        // Ask the device to stream presses
-        await wrappedDevice.subscribeToKeyEvents();
         // Now setup the hid events
         wrappedDevice.subscribeToHIDEvents();
+        // Ask the device to stream presses
+        await wrappedDevice.subscribeToEventStreams();
         return wrappedDevice;
     }
     subscribeToHIDEvents() {
         this.device.on('data', (reportId, data) => {
-            if (reportId === 0x02 && data.readUInt8(0) === 0xf0) {
-                const wheelByte = data.readUInt8(6);
-                if (wheelByte > 0) {
-                    if (wheelByte & 0x01) {
-                        this.emit('wheel', _1.WheelEvent.Right);
+            if (reportId === 0x02) {
+                if (data.readUInt8(0) === 0xf0) {
+                    const wheelByte = data.readUInt8(6);
+                    if (wheelByte > 0) {
+                        if (wheelByte & 0x01) {
+                            this.emit('wheel', _1.WheelEvent.Right);
+                        }
+                        else if (wheelByte & 0x02) {
+                            this.emit('wheel', _1.WheelEvent.Left);
+                        }
                     }
-                    else if (wheelByte & 0x02) {
-                        this.emit('wheel', _1.WheelEvent.Left);
-                    }
-                }
-                else {
-                    const keys = data.readUInt16LE(1);
-                    for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
-                        const keyPressed = (keys & (1 << keyIndex)) > 0;
-                        const stateChanged = keyPressed !== this.keyState[keyIndex];
-                        if (stateChanged) {
-                            this.keyState[keyIndex] = keyPressed;
-                            if (keyPressed) {
-                                this.emit('down', keyIndex);
-                            }
-                            else {
-                                this.emit('up', keyIndex);
+                    else {
+                        const keys = data.readUInt16LE(1);
+                        for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
+                            const keyPressed = (keys & (1 << keyIndex)) > 0;
+                            const stateChanged = keyPressed !== this.keyState[keyIndex];
+                            if (stateChanged) {
+                                this.keyState[keyIndex] = keyPressed;
+                                if (keyPressed) {
+                                    this.emit('down', keyIndex);
+                                }
+                                else {
+                                    this.emit('up', keyIndex);
+                                }
                             }
                         }
                     }
+                }
+                else if (data.readUInt8(0) === 0xf8) {
+                    const newState = data.readUInt8(1);
+                    // 3 - means 'already connected'
+                    if (newState === 4) {
+                        this.emit('disconnected');
+                    }
+                    else if (newState === 2) {
+                        // Resubscribe to events
+                        this.subscribeToEventStreams().catch((e) => {
+                            this.emit('error', e);
+                        });
+                        this.emit('connected');
+                    }
+                }
+                else if (data.readUInt8(0) === 0xf2 && data.readUInt8(1) === 0x01) {
+                    const percent = data.readUInt8(2);
+                    this.emit('battery', percent);
                 }
             }
         });
@@ -3719,12 +3739,26 @@ class XencelabsQuickKeysDevice extends EventEmitter {
             this.emit('error', err);
         });
     }
-    async subscribeToKeyEvents() {
-        const buffer = Buffer.alloc(32);
-        buffer.writeUInt8(0x02, 0);
-        buffer.writeUInt8(0xb0, 1);
-        buffer.writeUInt8(0x04, 2);
-        return this.device.sendReports([buffer]);
+    async subscribeToEventStreams() {
+        // Key events
+        const keyBuffer = Buffer.alloc(32);
+        keyBuffer.writeUInt8(0x02, 0);
+        keyBuffer.writeUInt8(0xb0, 1);
+        keyBuffer.writeUInt8(0x04, 2);
+        this.insertHeader(keyBuffer);
+        // // this appears to check if there is a surface already connected to the dongle
+        // const buffer2 = Buffer.alloc(32)
+        // buffer2.writeUInt8(0x02, 0)
+        // buffer2.writeUInt8(0xb8, 1)
+        // buffer2.writeUInt8(0x01, 2)
+        // this.insertHeader(buffer2)
+        // battery level
+        const batteryBuffer = Buffer.alloc(32);
+        batteryBuffer.writeUInt8(0x02, 0);
+        batteryBuffer.writeUInt8(0xb4, 1);
+        batteryBuffer.writeUInt8(0x10, 2);
+        this.insertHeader(batteryBuffer);
+        return this.device.sendReports([keyBuffer, batteryBuffer]);
     }
     checkValidKeyIndex(keyIndex) {
         if (keyIndex < 0 || keyIndex >= keyCount) {
@@ -4061,7 +4095,7 @@ class WebHIDDevice extends events_1.EventEmitter {
         return Buffer.from(view.buffer);
     }
     async sendReports(buffers) {
-        return this.reportQueue.add(async () => {
+        await this.reportQueue.add(async () => {
             for (const data of buffers) {
                 await this.device.sendReport(data[0], new Uint8Array(data.slice(1)));
             }
@@ -4250,10 +4284,23 @@ async function openDevice(device) {
         if (wheelCounter)
             wheelCounter.innerHTML = `${wheelCount}`;
     });
+    device.on('connected', () => {
+        appendLog('Connected');
+        deviceConnected(device).catch(console.error);
+    });
+    device.on('disconnected', () => {
+        appendLog('Disconnected');
+    });
+    device.on('battery', (percent) => {
+        appendLog(`Battery ${percent}%`);
+    });
     wheelCount = 0;
     if (wheelCounter)
         wheelCounter.innerHTML = `${wheelCount}`;
     document.querySelectorAll('.textlabel').forEach((e) => e.classList.remove('pressed'));
+    await deviceConnected(device);
+}
+async function deviceConnected(device) {
     await device.setSleepTimeout(5);
     await device.setWheelSpeed(webhid_1.XencelabsQuickKeysWheelSpeed.Normal);
     await device.setDisplayOrientation(webhid_1.XencelabsQuickKeysDisplayOrientation.Rotate0);
