@@ -34,7 +34,7 @@ export class WebHIDDevice extends EventEmitter implements CoreHIDDevice {
 		return Buffer.from(view.buffer)
 	}
 	public async sendReports(buffers: Buffer[]): Promise<void> {
-		return this.reportQueue.add(async () => {
+		await this.reportQueue.add(async () => {
 			for (const data of buffers) {
 				await this.device.sendReport(data[0], new Uint8Array(data.slice(1)))
 			}

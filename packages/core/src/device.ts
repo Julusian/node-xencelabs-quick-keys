@@ -21,11 +21,11 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 	public static async create(device: HIDDevice): Promise<XencelabsQuickKeysDevice> {
 		const wrappedDevice = new XencelabsQuickKeysDevice(device)
 
-		// Ask the device to stream presses
-		await wrappedDevice.subscribeToKeyEvents()
-
 		// Now setup the hid events
 		wrappedDevice.subscribeToHIDEvents()
+
+		// Ask the device to stream presses
+		await wrappedDevice.subscribeToKeyEvents()
 
 		return wrappedDevice
 	}
@@ -76,6 +76,8 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 		buffer.writeUInt8(0x02, 0)
 		buffer.writeUInt8(0xb0, 1)
 		buffer.writeUInt8(0x04, 2)
+
+		this.insertHeader(buffer)
 
 		return this.device.sendReports([buffer])
 	}
