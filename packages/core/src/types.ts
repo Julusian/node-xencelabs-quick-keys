@@ -15,6 +15,7 @@ export type XencelabsQuickKeysEvents = {
 
 	disconnected: []
 	connected: []
+	battery: [percent: number]
 }
 
 export enum XencelabsQuickKeysDisplayOrientation {

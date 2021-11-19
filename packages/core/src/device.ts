@@ -25,7 +25,7 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 		wrappedDevice.subscribeToHIDEvents()
 
 		// Ask the device to stream presses
-		await wrappedDevice.subscribeToKeyEvents()
+		await wrappedDevice.subscribeToEventStreams()
 
 		return wrappedDevice
 	}
@@ -66,16 +66,20 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 					}
 				} else if (data.readUInt8(0) === 0xf8) {
 					const newState = data.readUInt8(1)
+					// 3 - means 'already connected'
 					if (newState === 4) {
 						this.emit('disconnected')
 					} else if (newState === 2) {
 						// Resubscribe to events
-						this.subscribeToKeyEvents().catch((e) => {
+						this.subscribeToEventStreams().catch((e) => {
 							this.emit('error', e)
 						})
 
 						this.emit('connected')
 					}
+				} else if (data.readUInt8(0) === 0xf2 && data.readUInt8(1) === 0x01) {
+					const percent = data.readUInt8(2)
+					this.emit('battery', percent)
 				}
 			}
 		})
@@ -85,15 +89,29 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 		})
 	}
 
-	private async subscribeToKeyEvents(): Promise<void> {
-		const buffer = Buffer.alloc(32)
-		buffer.writeUInt8(0x02, 0)
-		buffer.writeUInt8(0xb0, 1)
-		buffer.writeUInt8(0x04, 2)
+	private async subscribeToEventStreams(): Promise<void> {
+		// Key events
+		const keyBuffer = Buffer.alloc(32)
+		keyBuffer.writeUInt8(0x02, 0)
+		keyBuffer.writeUInt8(0xb0, 1)
+		keyBuffer.writeUInt8(0x04, 2)
+		this.insertHeader(keyBuffer)
 
-		this.insertHeader(buffer)
+		// // this appears to check if there is a surface already connected to the dongle
+		// const buffer2 = Buffer.alloc(32)
+		// buffer2.writeUInt8(0x02, 0)
+		// buffer2.writeUInt8(0xb8, 1)
+		// buffer2.writeUInt8(0x01, 2)
+		// this.insertHeader(buffer2)
 
-		return this.device.sendReports([buffer])
+		// battery level
+		const batteryBuffer = Buffer.alloc(32)
+		batteryBuffer.writeUInt8(0x02, 0)
+		batteryBuffer.writeUInt8(0xb4, 1)
+		batteryBuffer.writeUInt8(0x10, 2)
+		this.insertHeader(batteryBuffer)
+
+		return this.device.sendReports([keyBuffer, batteryBuffer])
 	}
 
 	public checkValidKeyIndex(keyIndex: KeyIndex): void {

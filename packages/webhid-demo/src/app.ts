@@ -77,6 +77,9 @@ async function openDevice(device: XencelabsQuickKeysWeb): Promise<void> {
 	device.on('disconnected', () => {
 		appendLog('Disconnected')
 	})
+	device.on('battery', (percent) => {
+		appendLog(`Battery ${percent}%`)
+	})
 
 	wheelCount = 0
 	if (wheelCounter) wheelCounter.innerHTML = `${wheelCount}`
