@@ -1,6 +1,6 @@
 {
   "name": "@xencelabs-quick-keys/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An npm module for interfacing with the Xencelabs Quick Keys",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
