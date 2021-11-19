@@ -12,6 +12,9 @@ export type XencelabsQuickKeysEvents = {
 	up: [key: KeyIndex]
 	wheel: [event: WheelEvent]
 	error: [err: unknown]
+
+	disconnected: []
+	connected: []
 }
 
 export enum XencelabsQuickKeysDisplayOrientation {

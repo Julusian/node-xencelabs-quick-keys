@@ -70,12 +70,23 @@ async function openDevice(device: XencelabsQuickKeysWeb): Promise<void> {
 		}
 		if (wheelCounter) wheelCounter.innerHTML = `${wheelCount}`
 	})
+	device.on('connected', () => {
+		appendLog('Connected')
+		deviceConnected(device).catch(console.error)
+	})
+	device.on('disconnected', () => {
+		appendLog('Disconnected')
+	})
 
 	wheelCount = 0
 	if (wheelCounter) wheelCounter.innerHTML = `${wheelCount}`
 
 	document.querySelectorAll<HTMLInputElement>('.textlabel').forEach((e) => e.classList.remove('pressed'))
 
+	await deviceConnected(device)
+}
+
+async function deviceConnected(device: XencelabsQuickKeysWeb) {
 	await device.setSleepTimeout(5)
 	await device.setWheelSpeed(XencelabsQuickKeysWheelSpeed.Normal)
 	await device.setDisplayOrientation(XencelabsQuickKeysDisplayOrientation.Rotate0)

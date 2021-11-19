@@ -110,6 +110,15 @@ import { openXencelabsQuickKeys } from '@xencelabs-quick-keys/node'
 // Available devices can be found with listXencelabsQuickKeys()
 const myDevice = await openXencelabsQuickKeys() // Will throw an error if no compatible devices are connected.
 
+myDevice.on('connected', () => {
+	// this is emitted when the wireless dongle reconnects to the surface. The device should be treated as fresh and reconfigured
+	console.log('device connected')
+})
+myDevice.on('disconnected', () => {
+	// this is emitted when the wireless dongle loses connected to the surface
+	console.log('device disconnected')
+})
+
 myDevice.on('down', (keyIndex) => {
 	console.log('key %d down', keyIndex)
 })

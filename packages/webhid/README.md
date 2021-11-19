@@ -96,6 +96,15 @@ import { requestXencelabsQuickKeys } from '@xencelabs-quick-keys/webhid'
 // Prompts the user to select a device to use
 const myDevices = await requestXencelabsQuickKeys()
 
+myDevice[0].on('connected', () => {
+	// this is emitted when the wireless dongle reconnects to the surface. The device should be treated as fresh and reconfigured
+	console.log('device connected')
+})
+myDevice[0].on('disconnected', () => {
+	// this is emitted when the wireless dongle loses connected to the surface
+	console.log('device disconnected')
+})
+
 myDevices[0].on('down', (keyIndex) => {
 	console.log('key %d down', keyIndex)
 })

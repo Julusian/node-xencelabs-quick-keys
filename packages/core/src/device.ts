@@ -40,27 +40,41 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 
 	private subscribeToHIDEvents(): void {
 		this.device.on('data', (reportId, data) => {
-			if (reportId === 0x02 && data.readUInt8(0) === 0xf0) {
-				const wheelByte = data.readUInt8(6)
-				if (wheelByte > 0) {
-					if (wheelByte & 0x01) {
-						this.emit('wheel', WheelEvent.Right)
-					} else if (wheelByte & 0x02) {
-						this.emit('wheel', WheelEvent.Left)
-					}
-				} else {
-					const keys = data.readUInt16LE(1)
-					for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
-						const keyPressed = (keys & (1 << keyIndex)) > 0
-						const stateChanged = keyPressed !== this.keyState[keyIndex]
-						if (stateChanged) {
-							this.keyState[keyIndex] = keyPressed
-							if (keyPressed) {
-								this.emit('down', keyIndex)
-							} else {
-								this.emit('up', keyIndex)
+			if (reportId === 0x02) {
+				if (data.readUInt8(0) === 0xf0) {
+					const wheelByte = data.readUInt8(6)
+					if (wheelByte > 0) {
+						if (wheelByte & 0x01) {
+							this.emit('wheel', WheelEvent.Right)
+						} else if (wheelByte & 0x02) {
+							this.emit('wheel', WheelEvent.Left)
+						}
+					} else {
+						const keys = data.readUInt16LE(1)
+						for (let keyIndex = 0; keyIndex < keyCount; keyIndex++) {
+							const keyPressed = (keys & (1 << keyIndex)) > 0
+							const stateChanged = keyPressed !== this.keyState[keyIndex]
+							if (stateChanged) {
+								this.keyState[keyIndex] = keyPressed
+								if (keyPressed) {
+									this.emit('down', keyIndex)
+								} else {
+									this.emit('up', keyIndex)
+								}
 							}
 						}
+					}
+				} else if (data.readUInt8(0) === 0xf8) {
+					const newState = data.readUInt8(1)
+					if (newState === 4) {
+						this.emit('disconnected')
+					} else if (newState === 2) {
+						// Resubscribe to events
+						this.subscribeToKeyEvents().catch((e) => {
+							this.emit('error', e)
+						})
+
+						this.emit('connected')
 					}
 				}
 			}
