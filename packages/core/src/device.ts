@@ -16,6 +16,7 @@ const textKeyCount = 8
 
 export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEvents> implements XencelabsQuickKeys {
 	protected readonly device: HIDDevice
+	protected readonly deviceId: Buffer = Buffer.alloc(6)
 	private readonly keyState: boolean[]
 
 	public static async create(device: HIDDevice): Promise<XencelabsQuickKeysDevice> {
@@ -42,6 +43,7 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 		this.device.on('data', (reportId, data) => {
 			if (reportId === 0x02) {
 				if (data.readUInt8(0) === 0xf0) {
+					this.getDeviceId(data, 11)
 					const wheelByte = data.readUInt8(6)
 					if (wheelByte > 0) {
 						if (wheelByte & 0x01) {
@@ -65,6 +67,7 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 						}
 					}
 				} else if (data.readUInt8(0) === 0xf8) {
+					this.getDeviceId(data, 9)
 					const newState = data.readUInt8(1)
 					// 3 - means 'already connected'
 					if (newState === 4) {
@@ -78,6 +81,7 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 						this.emit('connected')
 					}
 				} else if (data.readUInt8(0) === 0xf2 && data.readUInt8(1) === 0x01) {
+					this.getDeviceId(data, 11)
 					const percent = data.readUInt8(2)
 					this.emit('battery', percent)
 				}
@@ -87,6 +91,11 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 		this.device.on('error', (err) => {
 			this.emit('error', err)
 		})
+	}
+
+	private getDeviceId(buffer: Buffer, startingIndex: number): void {
+		if (this.deviceId[0] === 0 && buffer.length >= startingIndex + 6)
+			buffer.copy(this.deviceId, 0, startingIndex, startingIndex + 6)
 	}
 
 	private async subscribeToEventStreams(): Promise<void> {
@@ -125,12 +134,7 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 	}
 
 	private insertHeader(buffer: Buffer): void {
-		buffer.writeUInt8(0xeb, 10)
-		buffer.writeUInt8(0x4f, 11)
-		buffer.writeUInt8(0x49, 12)
-		buffer.writeUInt8(0xbd, 13)
-		buffer.writeUInt8(0xd7, 14)
-		buffer.writeUInt8(0xfa, 15)
+		this.deviceId.copy(buffer, 10, 0, 6)
 	}
 
 	public async setKeyText(keyIndex: KeyIndex, text: string): Promise<void> {

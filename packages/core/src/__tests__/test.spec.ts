@@ -16,6 +16,7 @@ async function openMockDevice(path: string): Promise<XencelabsQuickKeys> {
 	const mockedFn = ((device as any).sendReports = jest.fn())
 
 	const result = await XencelabsQuickKeysDevice.create(device)
+	result['getDeviceId'](Buffer.of(0xeb, 0x4f, 0x49, 0xbd, 0xd7, 0xfa), 0)
 
 	expect(mockedFn).toHaveBeenCalledTimes(1)
 	device.sendReports = oldFn
