@@ -20,13 +20,24 @@ export class XencelabsQuickKeysProxy implements XencelabsQuickKeys {
 		this.device = device
 	}
 
+	public get deviceId(): string | null {
+		return this.device.deviceId
+	}
+
 	public checkValidKeyIndex(keyIndex: KeyIndex): void {
 		this.device.checkValidKeyIndex(keyIndex)
 	}
 
-	public async close(): Promise<void> {
-		return this.device.close()
+	public async startData(): Promise<void> {
+		return this.device.startData()
 	}
+	public async stopData(): Promise<void> {
+		return this.device.stopData()
+	}
+
+	// public async close(): Promise<void> {
+	// 	return this.device.close()
+	// }
 
 	public async setKeyText(keyIndex: KeyIndex, text: string): Promise<void> {
 		return this.device.setKeyText(keyIndex, text)

@@ -7,13 +7,14 @@ import Queue from 'p-queue'
  * This translates it into the common format expected by @xencelabs-quick-keys/core
  */
 export class WebHIDDevice extends EventEmitter implements CoreHIDDevice {
-	public dataKeyOffset?: number
 	private readonly device: HIDDevice
 
 	private readonly reportQueue = new Queue({ concurrency: 1 })
 
 	constructor(device: HIDDevice) {
 		super()
+
+		// console.log(device.collections)
 
 		this.device = device
 		// this.device.on('error', error => this.emit('error', error))
@@ -26,13 +27,6 @@ export class WebHIDDevice extends EventEmitter implements CoreHIDDevice {
 		return this.device.close()
 	}
 
-	public async sendFeatureReport(data: Buffer): Promise<void> {
-		return this.device.sendFeatureReport(data[0], new Uint8Array(data.slice(1)))
-	}
-	public async getFeatureReport(reportId: number, _reportLength: number): Promise<Buffer> {
-		const view = await this.device.receiveFeatureReport(reportId)
-		return Buffer.from(view.buffer)
-	}
 	public async sendReports(buffers: Buffer[]): Promise<void> {
 		await this.reportQueue.add(async () => {
 			for (const data of buffers) {

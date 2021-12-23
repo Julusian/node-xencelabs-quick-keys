@@ -24,12 +24,6 @@ export class DummyHID extends EventEmitter implements HID {
 	public readTimeout(_timeOut: number): number[] {
 		throw new Error('Not implemented')
 	}
-	public sendFeatureReport(_data: number[]): number {
-		throw new Error('Not implemented')
-	}
-	public getFeatureReport(_reportId: number, _reportLength: number): number[] {
-		throw new Error('Not implemented')
-	}
 	public resume(): void {
 		throw new Error('Not implemented')
 	}
