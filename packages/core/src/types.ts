@@ -12,9 +12,6 @@ export type XencelabsQuickKeysEvents = {
 	up: [key: KeyIndex]
 	wheel: [event: WheelEvent]
 	error: [err: unknown]
-
-	disconnected: []
-	connected: []
 	battery: [percent: number]
 }
 
@@ -41,6 +38,9 @@ export enum XencelabsQuickKeysWheelSpeed {
 }
 
 export interface XencelabsQuickKeys extends EventEmitter<XencelabsQuickKeysEvents> {
+	/** Unique identifier for the device, when known */
+	readonly deviceId: string | null
+
 	/**
 	 * Checks if a keyIndex is valid. Throws an error on failure
 	 * @param keyIndex The key to check
@@ -48,9 +48,14 @@ export interface XencelabsQuickKeys extends EventEmitter<XencelabsQuickKeysEvent
 	checkValidKeyIndex(keyIndex: KeyIndex): void
 
 	/**
-	 * Close the device
+	 * Start listening to device data
 	 */
-	close(): Promise<void>
+	startData(): Promise<void>
+
+	/**
+	 * Stop listening to device data
+	 */
+	stopData(): Promise<void>
 
 	/**
 	 * Set the text for the given key

@@ -17,7 +17,6 @@ export interface XencelabsQuickKeysInfo {
  * This translates it into the common format expected by @xencelabs-quick-keys/core
  */
 export class NodeHIDDevice extends EventEmitter implements HIDDevice {
-	public dataKeyOffset?: number
 	private device: HID.HID
 
 	constructor(deviceInfo: XencelabsQuickKeysInfo) {
@@ -26,6 +25,7 @@ export class NodeHIDDevice extends EventEmitter implements HIDDevice {
 		this.device = new HID.HID(deviceInfo.path)
 		this.device.on('error', (error) => this.emit('error', error))
 
+		// TODO - delay this until it is needed, to avoid the overhead..
 		this.device.on('data', (data: Buffer) => {
 			this.emit('data', data.readUInt8(0), data.slice(1))
 		})
@@ -35,12 +35,6 @@ export class NodeHIDDevice extends EventEmitter implements HIDDevice {
 		this.device.close()
 	}
 
-	public async sendFeatureReport(data: Buffer): Promise<void> {
-		this.device.sendFeatureReport(data)
-	}
-	public async getFeatureReport(reportId: number, reportLength: number): Promise<Buffer> {
-		return Buffer.from(this.device.getFeatureReport(reportId, reportLength))
-	}
 	public async sendReports(buffers: Buffer[]): Promise<void> {
 		for (const data of buffers) {
 			this.device.write(data)
