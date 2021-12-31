@@ -2,17 +2,22 @@ import {
 	PRODUCT_IDS_WIRED,
 	PRODUCT_IDS_WIRELESS,
 	VENDOR_ID,
-	XencelabsQuickKeys,
 	XencelabsQuickKeysManagerBase,
 } from '@xencelabs-quick-keys/core'
 import { WebHIDDevice } from './device'
 
-export type XencelabsQuickKeysManagerEvents = {
-	connect: [device: XencelabsQuickKeys]
-	disconnect: [device: XencelabsQuickKeys]
-}
-
 export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<HIDDevice> {
+	constructor() {
+		super()
+
+		navigator.hid.addEventListener('disconnect', (ev) => {
+			// Listen for disconnect events for our devices
+			const wrapped = this.getDevice(ev.device)
+			wrapped?.closeHidHandle?.().catch(() => {
+				this.emit('error', new Error('Failed to close disconnected device'))
+			})
+		})
+	}
 	/**
 	 * Request the user to select some devices to open
 	 */
@@ -44,7 +49,7 @@ export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<HID
 	 */
 	private async openDevice(browserDevice: HIDDevice): Promise<void> {
 		// TODO - is HIDDevice a stable enough id?
-		if (!this.isOpen(browserDevice)) {
+		if (!this.getDevice(browserDevice)) {
 			// This is a new or unsupported device
 			if (PRODUCT_IDS_WIRED.includes(browserDevice.productId)) {
 				await browserDevice.open()

@@ -38,9 +38,9 @@ export function DeviceManager({}: DeviceManagerProps) {
 
 			setDevices((old) => {
 				if (dev.deviceId) {
-					return old.filter((d) => d.id === dev.deviceId)
+					return old.filter((d) => d.id !== dev.deviceId)
 				} else {
-					return old.filter((d) => d.device === dev)
+					return old.filter((d) => d.device !== dev)
 				}
 			})
 		},
