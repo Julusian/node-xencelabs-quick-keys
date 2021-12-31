@@ -7,8 +7,9 @@ export {
 	WheelEvent,
 	XencelabsQuickKeysWheelSpeed,
 	XencelabsQuickKeysDisplayBrightness,
+	VENDOR_ID,
 } from '@xencelabs-quick-keys/core'
 export { XencelabsQuickKeysWeb } from './wrapper'
 export { XencelabsQuickKeysManager } from './manager'
 
-export const XencelabsQuickKeysDeviceManager = new XencelabsQuickKeysManager()
+export const XencelabsQuickKeysManagerInstance = new XencelabsQuickKeysManager()

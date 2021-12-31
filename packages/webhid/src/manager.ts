@@ -33,7 +33,7 @@ export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<HID
 	 * Reopen previously selected XencelabsQuickKeys.
 	 * The browser remembers what the user previously allowed your site to access, and this will open those without the request dialog
 	 */
-	public async getXencelabsQuickKeys(): Promise<void> {
+	public async reopenXencelabsQuickKeys(): Promise<void> {
 		// TODO - error handling
 		const browserDevices = await navigator.hid.getDevices()
 		await Promise.all(browserDevices.map(async (dev) => this.openDevice(dev)))
