@@ -43,11 +43,6 @@ export class XencelabsQuickKeysWirelessDongle {
 
 		this.#children = new Map()
 
-		const closeAll = () => {
-			const devs = Array.from(this.#children.values()).map((c) => c.wrapper)
-			this.#devicesDisconnected(devs, true)
-		}
-
 		{
 			// check if there is a surface already connected to the dongle
 			const discoverBuffer = Buffer.alloc(32)
@@ -58,15 +53,14 @@ export class XencelabsQuickKeysWirelessDongle {
 				// Ignore error and pretend device was not found
 
 				// close device and ignore any error
-				this.#device.close().catch(() => null)
-				closeAll()
+				this.closeHidHandle().catch(() => null)
 			})
 		}
 
 		this.#device.on('error', () => {
 			// Device errored, we assume that means gone away
 			// TODO something with the error?
-			closeAll()
+			this.closeAll()
 		})
 
 		this.#device.on('data', (reportId, data) => {
@@ -103,8 +97,7 @@ export class XencelabsQuickKeysWirelessDongle {
 								// Ignore error and pretend device was not found
 
 								// close device and ignore any error
-								this.#device.close().catch(() => null)
-								closeAll()
+								this.closeHidHandle().catch(() => null)
 							})
 					} else {
 						// already known
@@ -113,9 +106,6 @@ export class XencelabsQuickKeysWirelessDongle {
 					// lost connection
 					this.#devicesDisconnected([device], false)
 				} else if (newState === 2) {
-					// just connected
-					this.#deviceConnected(device)
-
 					// subscribe to events
 					device
 						.subscribeToEventStreams()
@@ -126,8 +116,7 @@ export class XencelabsQuickKeysWirelessDongle {
 							// Ignore error and pretend device was not found
 
 							// close device and ignore any error
-							this.#device.close().catch(() => null)
-							closeAll()
+							this.closeHidHandle().catch(() => null)
 						})
 				} else {
 					// Unknown status. are there more?
@@ -149,6 +138,13 @@ export class XencelabsQuickKeysWirelessDongle {
 
 	/** Close the raw HID handle. Not for public use */
 	public async closeHidHandle(): Promise<void> {
+		this.closeAll()
+
 		await this.#device.close()
+	}
+
+	private closeAll(): void {
+		const devs = Array.from(this.#children.values()).map((c) => c.wrapper)
+		this.#devicesDisconnected(devs, true)
 	}
 }

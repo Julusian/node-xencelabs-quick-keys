@@ -22,15 +22,15 @@ export abstract class XencelabsQuickKeysManagerBase<TIdentifier> extends EventEm
 	/** Close handles to all devices */
 	public async closeAll(): Promise<void> {
 		for (const device of this.#devices.values()) {
-			device.closeHidHandle().catch(() => {
-				// Ignore
-			})
+			device.closeHidHandle().catch(() => null)
 		}
 		this.#devices.clear()
 	}
 
-	protected isOpen(identifier: TIdentifier): boolean {
-		return this.#devices.has(identifier)
+	protected getDevice(
+		identifier: TIdentifier
+	): XencelabsQuickKeysWirelessDongle | XencelabsQuickKeysDevice | undefined {
+		return this.#devices.get(identifier)
 	}
 
 	protected openWiredDevice(identifier: TIdentifier, hid: HIDDevice): void {

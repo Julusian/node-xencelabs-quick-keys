@@ -43,7 +43,7 @@ export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<str
 		for (const dev of devices) {
 			if (dev.vendorId === VENDOR_ID && dev.path && dev.interface === DEVICE_INTERFACE) {
 				const path = dev.path
-				if (!this.isOpen(dev.path)) {
+				if (!this.getDevice(dev.path)) {
 					// This is a new or unsupported device
 					if (PRODUCT_IDS_WIRED.includes(dev.productId)) {
 						tryOpenDevice(path)
