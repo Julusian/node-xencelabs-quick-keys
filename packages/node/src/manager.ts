@@ -7,7 +7,7 @@ import {
 import * as HID from 'node-hid'
 import { NodeHIDDevice } from './device'
 
-const DEVICE_INTERFACE = 2
+export const DEVICE_INTERFACE = 2
 
 async function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms))
