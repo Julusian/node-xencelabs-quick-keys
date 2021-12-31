@@ -10,8 +10,13 @@ export type XencelabsQuickKeysManagerEvents = {
 	error: [err: Error]
 }
 
+export interface DeviceEntry {
+	device: XencelabsQuickKeysWirelessDongle | XencelabsQuickKeysDevice
+	doClose: (() => void) | undefined
+}
+
 export abstract class XencelabsQuickKeysManagerBase<TIdentifier> extends EventEmitter<XencelabsQuickKeysManagerEvents> {
-	readonly #devices: Map<TIdentifier, XencelabsQuickKeysWirelessDongle | XencelabsQuickKeysDevice>
+	readonly #devices: Map<TIdentifier, DeviceEntry>
 
 	constructor() {
 		super()
@@ -22,31 +27,32 @@ export abstract class XencelabsQuickKeysManagerBase<TIdentifier> extends EventEm
 	/** Close handles to all devices */
 	public async closeAll(): Promise<void> {
 		for (const device of this.#devices.values()) {
-			device.closeHidHandle().catch(() => null)
+			device.device.closeHidHandle().catch(() => null)
 		}
 		this.#devices.clear()
 	}
 
-	protected getDevice(
-		identifier: TIdentifier
-	): XencelabsQuickKeysWirelessDongle | XencelabsQuickKeysDevice | undefined {
+	protected getDevice(identifier: TIdentifier): DeviceEntry | undefined {
 		return this.#devices.get(identifier)
 	}
 
 	protected openWiredDevice(identifier: TIdentifier, hid: HIDDevice): void {
-		const deviceDisconnected = (dev: XencelabsQuickKeys) => {
-			this.#devices.delete(identifier)
-			this.emit('disconnect', dev)
-		}
-
 		const device = new XencelabsQuickKeysDevice(hid, null) // No known way to get ids yet for wired
+
+		const deviceDisconnected = () => {
+			this.#devices.delete(identifier)
+			this.emit('disconnect', device)
+		}
 
 		// If it errors, discard
 		hid.on('error', () => {
-			deviceDisconnected(device)
+			deviceDisconnected()
 		})
 
-		this.#devices.set(identifier, device)
+		this.#devices.set(identifier, {
+			device,
+			doClose: deviceDisconnected,
+		})
 
 		device
 			.subscribeToEventStreams()
@@ -78,6 +84,9 @@ export abstract class XencelabsQuickKeysManagerBase<TIdentifier> extends EventEm
 		}
 
 		const device = new XencelabsQuickKeysWirelessDongle(hid, devicesDisconnected, deviceConnected)
-		this.#devices.set(identifier, device)
+		this.#devices.set(identifier, {
+			device,
+			doClose: undefined,
+		})
 	}
 }

@@ -13,9 +13,12 @@ export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<HID
 		navigator.hid.addEventListener('disconnect', (ev) => {
 			// Listen for disconnect events for our devices
 			const wrapped = this.getDevice(ev.device)
-			wrapped?.closeHidHandle?.().catch(() => {
-				this.emit('error', new Error('Failed to close disconnected device'))
-			})
+			if (wrapped) {
+				wrapped.device.closeHidHandle?.().catch(() => {
+					this.emit('error', new Error('Failed to close disconnected device'))
+				})
+				wrapped.doClose?.()
+			}
 		})
 	}
 	/**
