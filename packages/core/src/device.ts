@@ -29,6 +29,11 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 		this.keyState = new Array(keyCount).fill(false)
 	}
 
+	/** Close the raw HID handle. Not for public use */
+	public async closeHidHandle(): Promise<void> {
+		await this.device.close()
+	}
+
 	public async startData(): Promise<void> {
 		this.device.on('data', this.handleData)
 	}

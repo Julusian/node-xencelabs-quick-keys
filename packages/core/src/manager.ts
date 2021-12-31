@@ -7,6 +7,7 @@ import { XencelabsQuickKeysDevice } from './device'
 export type XencelabsQuickKeysManagerEvents = {
 	connect: [device: XencelabsQuickKeys]
 	disconnect: [device: XencelabsQuickKeys]
+	error: [err: Error]
 }
 
 export abstract class XencelabsQuickKeysManagerBase<TIdentifier> extends EventEmitter<XencelabsQuickKeysManagerEvents> {
@@ -20,9 +21,10 @@ export abstract class XencelabsQuickKeysManagerBase<TIdentifier> extends EventEm
 
 	/** Close handles to all devices */
 	public async closeAll(): Promise<void> {
-		for (const _device of this.#devices.values()) {
-			// TODO
-			// device.close()
+		for (const device of this.#devices.values()) {
+			device.closeHidHandle().catch(() => {
+				// Ignore
+			})
 		}
 		this.#devices.clear()
 	}

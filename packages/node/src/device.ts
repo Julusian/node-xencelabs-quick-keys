@@ -22,6 +22,7 @@ export class NodeHIDDevice extends EventEmitter implements HIDDevice {
 	constructor(deviceInfo: XencelabsQuickKeysInfo) {
 		super()
 
+		console.log('open', deviceInfo.path)
 		this.device = new HID.HID(deviceInfo.path)
 		this.device.on('error', (error) => this.emit('error', error))
 
@@ -32,6 +33,7 @@ export class NodeHIDDevice extends EventEmitter implements HIDDevice {
 	}
 
 	public async close(): Promise<void> {
+		console.log('close', (this.device as any).path)
 		this.device.close()
 	}
 
