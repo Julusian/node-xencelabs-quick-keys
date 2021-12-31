@@ -16,14 +16,14 @@ async function sleep(ms: number): Promise<void> {
 async function tryOpenDevice(path: string): Promise<NodeHIDDevice> {
 	try {
 		return new NodeHIDDevice({ path })
-	} catch (e) {
+	} catch (_e) {
 		// failed, sleep then try again
 
 		await sleep(50)
 
 		try {
 			return new NodeHIDDevice({ path })
-		} catch (e) {
+		} catch (_e2) {
 			// Failed again, sleep a bit more
 
 			await sleep(500)
@@ -39,8 +39,6 @@ export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<str
 		const devices = HID.devices()
 
 		// TODO - this needs to wait for other scans to have finished
-
-		// TODO - detect device disconnection
 
 		for (const dev of devices) {
 			if (dev.vendorId === VENDOR_ID && dev.path && dev.interface === DEVICE_INTERFACE) {
