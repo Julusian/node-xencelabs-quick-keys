@@ -10,7 +10,7 @@ module.exports = {
 	// No source map for production build
 	devtool: 'source-map',
 
-	entry: path.join(__dirname, '/src/app.ts'),
+	entry: path.join(__dirname, '/src/app.tsx'),
 
 	optimization: {
 		// We no not want to minimize our code.
