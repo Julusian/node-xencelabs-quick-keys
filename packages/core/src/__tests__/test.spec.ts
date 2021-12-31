@@ -15,7 +15,9 @@ async function openMockDevice(path: string): Promise<XencelabsQuickKeys> {
 	const oldFn = device.sendReports
 	const mockedFn = ((device as any).sendReports = jest.fn())
 
-	const result = await XencelabsQuickKeysDevice.create(device)
+	const result = new XencelabsQuickKeysDevice(device, 'eb4f49bdd7fa')
+	await result.subscribeToEventStreams()
+	await result.startData()
 
 	expect(mockedFn).toHaveBeenCalledTimes(1)
 	device.sendReports = oldFn
@@ -151,16 +153,16 @@ describe('Xencelabs Quick Keys', () => {
 		await expect(async () => quickKeys.setKeyText(8, 'abc')).rejects.toThrow()
 	})
 
-	test('forwards error events from the device', () => {
-		const errorSpy = jest.fn()
-		quickKeys.on('error', errorSpy)
+	// test('forwards error events from the device', () => {
+	// 	const errorSpy = jest.fn()
+	// 	quickKeys.on('error', errorSpy)
 
-		const device = getDevice()
-		device.emit('error', new Error('Test'))
+	// 	const device = getDevice()
+	// 	device.emit('error', new Error('Test'))
 
-		expect(errorSpy).toHaveBeenCalledTimes(1)
-		expect(errorSpy).toHaveBeenNthCalledWith(1, new Error('Test'))
-	})
+	// 	expect(errorSpy).toHaveBeenCalledTimes(1)
+	// 	expect(errorSpy).toHaveBeenNthCalledWith(1, new Error('Test'))
+	// })
 
 	test('setDisplayBrightness', async () => {
 		const device = getDevice()
@@ -331,14 +333,5 @@ describe('Xencelabs Quick Keys', () => {
 		await expect(async () => quickKeys.showOverlayText(1, '012345678901234567890123456789012')).rejects.toThrow()
 		await expect(async () => quickKeys.showOverlayText(0, 'abc')).rejects.toThrow()
 		await expect(async () => quickKeys.showOverlayText(256, 'abc')).rejects.toThrow()
-	})
-
-	test('close', async () => {
-		const device = getDevice()
-		device.close = jest.fn()
-
-		await quickKeys.close()
-
-		expect(device.close).toHaveBeenCalledTimes(1)
 	})
 })
