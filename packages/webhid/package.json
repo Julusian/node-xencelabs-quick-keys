@@ -1,6 +1,6 @@
 {
   "name": "@xencelabs-quick-keys/webhid",
-  "version": "0.3.0",
+  "version": "0.4.0-alpha.0",
   "description": "An npm module for interfacing with the Xencelabs Quick Keys in the browser",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -36,7 +36,7 @@
   ],
   "dependencies": {
     "@types/w3c-web-hid": "^1.0.1",
-    "@xencelabs-quick-keys/core": "0.3.0",
+    "@xencelabs-quick-keys/core": "0.4.0-alpha.0",
     "p-queue": "^6.6.2"
   },
   "engines": {

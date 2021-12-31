@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0-alpha.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.3.0...v0.4.0-alpha.0) (2021-12-31)
+
+
+### Bug Fixes
+
+* manager things ([0600f57](https://github.com/julusian/node-xencelabs-quick-keys/commit/0600f57d4452a2bf639cf642f8b48d4ded03e330))
+* mush tests to be passing ([fcbaf3e](https://github.com/julusian/node-xencelabs-quick-keys/commit/fcbaf3e16b6b8c5f1db274131fa2f889cd36e921))
+* retry opening after scan to make sure device is ready ([c8c8af3](https://github.com/julusian/node-xencelabs-quick-keys/commit/c8c8af3bd19adee58271dbe2fc157f736afff0e5))
+* wireless dongle with webhid ([c095f9a](https://github.com/julusian/node-xencelabs-quick-keys/commit/c095f9a050fadc360b0aff2003f14c6992e3e03f))
+
+
+
+
+
 # [0.3.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.2.0...v0.3.0) (2021-11-19)
 
 
