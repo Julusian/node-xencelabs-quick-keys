@@ -136,9 +136,10 @@ export class XencelabsQuickKeysWirelessDongle {
 				// TODO - is this a constant offset or does it vary?
 				const deviceId = data.toString('hex', 11, 17)
 				const child = this.#children.get(deviceId)
+				// console.log('pkt', deviceId, child, data)
 				if (child) {
 					// Forward to the correct child
-					child.hid.emit('data', data)
+					child.hid.emit('data', reportId, data)
 				} else {
 					// No device found, this might be a bug?
 				}
@@ -146,5 +147,8 @@ export class XencelabsQuickKeysWirelessDongle {
 		})
 	}
 
-	//
+	/** Close the raw HID handle. Not for public use */
+	public async closeHidHandle(): Promise<void> {
+		await this.#device.close()
+	}
 }

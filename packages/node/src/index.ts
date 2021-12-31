@@ -3,16 +3,20 @@
 // import { NodeHIDDevice, XencelabsQuickKeysInfo } from './device'
 // import { XencelabsQuickKeysNode } from './wrapper'
 
-// export {
-// 	KeyIndex,
-// 	XencelabsQuickKeys,
-// 	XencelabsQuickKeysDisplayOrientation,
-// 	WheelEvent,
-// 	XencelabsQuickKeysWheelSpeed,
-// 	XencelabsQuickKeysDisplayBrightness,
-// } from '@xencelabs-quick-keys/core'
+import { XencelabsQuickKeysManager } from './manager'
 
-export const DEVICE_INTERFACE = 2
+export { XencelabsQuickKeysManager } from './manager'
+
+export {
+	KeyIndex,
+	XencelabsQuickKeys,
+	XencelabsQuickKeysDisplayOrientation,
+	WheelEvent,
+	XencelabsQuickKeysWheelSpeed,
+	XencelabsQuickKeysDisplayBrightness,
+} from '@xencelabs-quick-keys/core'
+
+// export const DEVICE_INTERFACE = 2
 
 // /**
 //  * Scan for and list detected devices
@@ -64,3 +68,5 @@ export const DEVICE_INTERFACE = 2
 // 	const innerDevice = await XencelabsQuickKeysDevice.create(device)
 // 	return new XencelabsQuickKeysNode(innerDevice)
 // }
+
+export const XencelabsQuickKeysManagerInstance = new XencelabsQuickKeysManager()
