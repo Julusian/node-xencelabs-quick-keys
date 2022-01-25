@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.4.0-alpha.0...v0.4.0) (2022-01-25)
+
+
+### Features
+
+* **node:** accept array of hid devices in manager ([cbaa1f8](https://github.com/julusian/node-xencelabs-quick-keys/commit/cbaa1f8bf9f7b8c73e9ff4b5a3374b7a71855858))
+
+
+
+
+
 # [0.4.0-alpha.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.3.0...v0.4.0-alpha.0) (2021-12-31)
 
 
