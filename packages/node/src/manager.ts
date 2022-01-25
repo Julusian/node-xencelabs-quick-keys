@@ -34,12 +34,23 @@ async function tryOpenDevice(path: string): Promise<NodeHIDDevice> {
 	}
 }
 export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<string> {
-	/** Newly discovered devices will be announced via the connect event, as they are not always immediately accessible */
+	/**
+	 * Perform a scan and open any new devices
+	 * Once opened they will be announced via the connect event, as they are not always immediately accessible
+	 */
 	public async scanDevices(): Promise<void> {
 		const devices = HID.devices()
 
 		// TODO - this needs to wait for other scans to have finished
 
+		return this.openDevicesFromArray(devices)
+	}
+
+	/**
+	 * Open any new devices from the list.
+	 * Once opened they will be announced via the connect event, as they are not always immediately accessible
+	 */
+	public async openDevicesFromArray(devices: Array<HID.Device>): Promise<void> {
 		for (const dev of devices) {
 			if (dev.vendorId === VENDOR_ID && dev.path && dev.interface === DEVICE_INTERFACE) {
 				const path = dev.path
