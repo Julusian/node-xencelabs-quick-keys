@@ -91,41 +91,45 @@ The XencelabsQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
 ## Example
 
 ```typescript
-import { requestXencelabsQuickKeys } from '@xencelabs-quick-keys/webhid'
+import { XencelabsQuickKeysManagerInstance } from '@xencelabs-quick-keys/webhid'
 
-// Prompts the user to select a device to use
-const myDevices = await requestXencelabsQuickKeys()
+// start listening for devices
+XencelabsQuickKeysManagerInstance.on('connect', (myDevice) => {
+	// Device has connected
 
-myDevice[0].on('connected', () => {
-	// this is emitted when the wireless dongle reconnects to the surface. The device should be treated as fresh and reconfigured
-	console.log('device connected')
+	// Open the streams for data read and write
+	await myDevice.startData()
+
+	myDevice.on('down', (keyIndex) => {
+		console.log('key %d down', keyIndex)
+	})
+
+	myDevice.on('up', (keyIndex) => {
+		console.log('key %d up', keyIndex)
+	})
+
+	// Fired whenever an error is detected by the `node-hid` library.
+	// Always add a listener for this event! If you don't, errors will be silently dropped.
+	myDevice.on('error', (error) => {
+		console.error(error)
+	})
+
+	myDevices.on('wheel', (e) => {
+		console.log('wheel %s', e)
+	})
+
+	// Fill the first button text. This is asynchronous.
+	await myDevices.setKeyText(4, 'test')
+	console.log('Successfully wrote text to key 4.')
 })
-myDevice[0].on('disconnected', () => {
-	// this is emitted when the wireless dongle loses connected to the surface
-	console.log('device disconnected')
+XencelabsQuickKeysManagerInstance.on('disconnect', (myDevice) => {
+	// Device has disconnected
 })
 
-myDevices[0].on('down', (keyIndex) => {
-	console.log('key %d down', keyIndex)
+// Trigger a scan for devices
+XencelabsQuickKeysManagerInstance.scanDevices().catch((e) => {
+	console.error(`scan failed: ${e}`)
 })
-
-myDevices[0].on('up', (keyIndex) => {
-	console.log('key %d up', keyIndex)
-})
-
-myDevices[0].on('wheel', (e) => {
-	console.log('wheel %s', e)
-})
-
-// Fired whenever an error is detected by the hid device.
-// Always add a listener for this event! If you don't, errors will be silently dropped.
-myDevices[0].on('error', (error) => {
-	console.error(error)
-})
-
-// Fill the first button text. This is asynchronous.
-await myDevices[0].setKeyText(4, 'test')
-console.log('Successfully wrote text to key 4.')
 ```
 
 Some the [demo site](https://julusian.github.io/node-xencelabs-quick-keys/) for some more complete examples and its corresponding [source](/packages/webhid-demo).
