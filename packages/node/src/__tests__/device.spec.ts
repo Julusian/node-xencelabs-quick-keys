@@ -1,4 +1,4 @@
-// tslint:disable-next-line: no-submodule-imports
+/* eslint-disable jest/no-commented-out-tests */
 import { mocked } from 'ts-jest/utils'
 
 import { DummyHID } from '../__mocks__/hid'
