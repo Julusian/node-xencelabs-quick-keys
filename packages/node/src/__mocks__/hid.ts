@@ -39,4 +39,10 @@ export class DummyHID extends EventEmitter implements HID {
 	public setNonBlocking(_no_block: boolean): void {
 		throw new Error('Method not implemented.')
 	}
+	public sendFeatureReport(_data: number[] | Buffer): number {
+		throw new Error('Method not implemented.')
+	}
+	public getFeatureReport(_report_id: number, _report_length: number): number[] {
+		throw new Error('Method not implemented.')
+	}
 }

@@ -1,5 +1,4 @@
 /* eslint-disable jest/no-commented-out-tests */
-import { mocked } from 'ts-jest/utils'
 
 import { DummyHID } from '../__mocks__/hid'
 import { DEVICE_INTERFACE } from '../manager'
@@ -7,14 +6,14 @@ import { DEVICE_INTERFACE } from '../manager'
 jest.mock('node-hid')
 import { devices, HID } from 'node-hid'
 // Forcing path to be string, as there are multiple constructor options, we require the string one
-mocked(HID).mockImplementation((path: any) => new DummyHID(path))
+jest.mocked(HID).mockImplementation((path: any) => new DummyHID(path))
 
 // Must be required after we register a mock for `node-hid`.
 import { PRODUCT_IDS_WIRED, PRODUCT_IDS_WIRELESS, VENDOR_ID } from '@xencelabs-quick-keys/core'
 
 describe('Xence Quick Keys', () => {
 	function mockDevicesImplementation() {
-		mocked(devices).mockImplementation(() => [
+		jest.mocked(devices).mockImplementation(() => [
 			...[...PRODUCT_IDS_WIRED, ...PRODUCT_IDS_WIRELESS].map((id) => ({
 				productId: id,
 				vendorId: VENDOR_ID,

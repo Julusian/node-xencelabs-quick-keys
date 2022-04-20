@@ -154,6 +154,7 @@ describe('Xencelabs Quick Keys', () => {
 		await expect(async () => quickKeys.setKeyText(8, 'abc')).rejects.toThrow()
 	})
 
+	// eslint-disable-next-line jest/no-commented-out-tests
 	// test('forwards error events from the device', () => {
 	// 	const errorSpy = jest.fn()
 	// 	quickKeys.on('error', errorSpy)
