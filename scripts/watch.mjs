@@ -1,4 +1,5 @@
-const concurrently = require('concurrently')
+// eslint-disable-next-line node/no-unpublished-import
+import concurrently from 'concurrently'
 
 let devServerFlags = ''
 if ('DEVSERVER_FLAGS' in process.env) {
@@ -37,7 +38,8 @@ if ('DEVSERVER_FLAGS' in process.env) {
 				killOthers: ['failure', 'success'],
 				restartTries: 3,
 			}
-		)
+		).result
+
 		console.log('Done!')
 		process.exit()
 	} catch (err) {
