@@ -103,7 +103,7 @@ The XencelabsQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
 import { XencelabsQuickKeysManagerInstance } from '@xencelabs-quick-keys/node'
 
 // start listening for devices
-XencelabsQuickKeysManagerInstance.on('connect', (myDevice) => {
+XencelabsQuickKeysManagerInstance.on('connect', async (myDevice) => {
 	// Device has connected
 
 	// Open the streams for data read and write
@@ -123,12 +123,12 @@ XencelabsQuickKeysManagerInstance.on('connect', (myDevice) => {
 		console.error(error)
 	})
 
-	myDevices.on('wheel', (e) => {
+	myDevice.on('wheel', (e) => {
 		console.log('wheel %s', e)
 	})
 
 	// Fill the first button text. This is asynchronous.
-	await myDevices.setKeyText(4, 'test')
+	await myDevice.setKeyText(4, 'test')
 	console.log('Successfully wrote text to key 4.')
 })
 XencelabsQuickKeysManagerInstance.on('disconnect', (myDevice) => {
@@ -136,7 +136,7 @@ XencelabsQuickKeysManagerInstance.on('disconnect', (myDevice) => {
 })
 
 // Prompt the user to grant access to some devices
-XencelabsQuickKeysManagerInstance.requestXencelabsQuickKeys().catch((e) => {
+XencelabsQuickKeysManagerInstance.scanDevices().catch((e) => {
 	console.error(`scan failed: ${e}`)
 })
 ```
