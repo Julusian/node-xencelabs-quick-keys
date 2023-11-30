@@ -153,7 +153,11 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 	}
 
 	public async setDisplayOrientation(orientation: XencelabsQuickKeysDisplayOrientation): Promise<void> {
-		if (!Object.values(XencelabsQuickKeysDisplayOrientation).includes(orientation)) {
+		if (
+			!Object.values<XencelabsQuickKeysDisplayOrientation>(XencelabsQuickKeysDisplayOrientation as any).includes(
+				orientation
+			)
+		) {
 			throw new TypeError('Expected a valid orientation')
 		}
 
@@ -168,7 +172,11 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 	}
 
 	public async setDisplayBrightness(brightness: XencelabsQuickKeysDisplayBrightness): Promise<void> {
-		if (!Object.values(XencelabsQuickKeysDisplayBrightness).includes(brightness)) {
+		if (
+			!Object.values<XencelabsQuickKeysDisplayBrightness>(XencelabsQuickKeysDisplayBrightness as any).includes(
+				brightness
+			)
+		) {
 			throw new TypeError('Expected a valid brightness')
 		}
 
@@ -185,7 +193,7 @@ export class XencelabsQuickKeysDevice extends EventEmitter<XencelabsQuickKeysEve
 	}
 
 	public async setWheelSpeed(speed: XencelabsQuickKeysWheelSpeed): Promise<void> {
-		if (!Object.values(XencelabsQuickKeysWheelSpeed).includes(speed)) {
+		if (!Object.values<XencelabsQuickKeysWheelSpeed>(XencelabsQuickKeysWheelSpeed as any).includes(speed)) {
 			throw new TypeError('Expected a valid speed')
 		}
 
