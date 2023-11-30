@@ -14,23 +14,30 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function tryOpenDevice(path: string): Promise<NodeHIDDevice> {
+	let hid: HID.HIDAsync | undefined
 	try {
-		return new NodeHIDDevice({ path })
+		hid = await HID.HIDAsync.open(path)
 	} catch (_e) {
 		// failed, sleep then try again
 
 		await sleep(50)
 
 		try {
-			return new NodeHIDDevice({ path })
+			hid = await HID.HIDAsync.open(path)
 		} catch (_e2) {
 			// Failed again, sleep a bit more
 
 			await sleep(500)
 
 			// Try one final time
-			return new NodeHIDDevice({ path })
+			hid = await HID.HIDAsync.open(path)
 		}
+	}
+
+	if (hid) {
+		return new NodeHIDDevice(hid)
+	} else {
+		throw new Error('Failed to open device')
 	}
 }
 export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<string> {
@@ -39,7 +46,7 @@ export class XencelabsQuickKeysManager extends XencelabsQuickKeysManagerBase<str
 	 * Once opened they will be announced via the connect event, as they are not always immediately accessible
 	 */
 	public async scanDevices(): Promise<void> {
-		const devices = HID.devices()
+		const devices = await HID.devicesAsync()
 
 		// TODO - this needs to wait for other scans to have finished
 

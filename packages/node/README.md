@@ -78,21 +78,7 @@ Unplug and replug the device and it should be usable
 The root methods exposed by the library are as follows. For more information it is recommended to rely on the typescript typings for hints or to browse through the source to see what methods are available
 
 ```typescript
-/**
- * Scan for and list detected devices
- */
-export function listXencelabsQuickKeys(): XencelabsQuickKeysInfo[]
-
-/**
- * Get the info of a device if the given path is a compatible device
- */
-export function getXencelabsQuickKeysInfo(path: string): XencelabsQuickKeysInfo | undefined
-
-/**
- * Open a device
- * @param devicePath The path of the device to open. If not set, the first will be used
- */
-export function openXencelabsQuickKeys(devicePath?: string): XencelabsQuickKeysNode
+// TODO
 ```
 
 The XencelabsQuickKeys type can be found [here](/packages/core/src/types.ts#L15)
