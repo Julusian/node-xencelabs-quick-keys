@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@xencelabs-quick-keys/core": "0.4.0",
-    "node-hid": "^2.1.1",
+    "node-hid": "^2.2.0",
     "tslib": "^2.6.2",
     "usb": "^2.11.0"
   }
