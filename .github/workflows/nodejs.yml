@@ -82,8 +82,6 @@ jobs:
       - name: Send coverage
         if: matrix.node-version == '18.x'
         uses: codecov/codecov-action@v3
-        with:
-          fail_ci_if_error: true
 
   publish-demo:
     name: Publish demo to Github Pages
