@@ -11,6 +11,7 @@
 		},
 		"lib": ["es6", "dom"],
 		"types": ["w3c-web-hid"],
-		"importHelpers": false
+		"importHelpers": false,
+		"esModuleInterop": true
 	}
 }
