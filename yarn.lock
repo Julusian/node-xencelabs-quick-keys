@@ -2226,7 +2226,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xencelabs-quick-keys/core@npm:1.0.0-0, @xencelabs-quick-keys/core@workspace:packages/core":
+"@xencelabs-quick-keys/core@npm:1.0.0, @xencelabs-quick-keys/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@xencelabs-quick-keys/core@workspace:packages/core"
   dependencies:
@@ -2239,7 +2239,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@xencelabs-quick-keys/node@workspace:packages/node"
   dependencies:
-    "@xencelabs-quick-keys/core": "npm:1.0.0-0"
+    "@xencelabs-quick-keys/core": "npm:1.0.0"
     node-hid: "npm:^3.0.0"
     tslib: "npm:^2.6.2"
     usb: "npm:^2.11.0"
@@ -2253,7 +2253,7 @@ __metadata:
     "@types/react": "npm:^18.2.39"
     "@types/react-color": "npm:^3.0.10"
     "@types/react-dom": "npm:^18.2.17"
-    "@xencelabs-quick-keys/webhid": "npm:1.0.0-0"
+    "@xencelabs-quick-keys/webhid": "npm:1.0.0"
     buffer: "npm:^6.0.3"
     classnames: "npm:^2.3.2"
     copy-webpack-plugin: "npm:^11.0.0"
@@ -2268,12 +2268,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@xencelabs-quick-keys/webhid@npm:1.0.0-0, @xencelabs-quick-keys/webhid@workspace:packages/webhid":
+"@xencelabs-quick-keys/webhid@npm:1.0.0, @xencelabs-quick-keys/webhid@workspace:packages/webhid":
   version: 0.0.0-use.local
   resolution: "@xencelabs-quick-keys/webhid@workspace:packages/webhid"
   dependencies:
     "@types/w3c-web-hid": "npm:^1.0.6"
-    "@xencelabs-quick-keys/core": "npm:1.0.0-0"
+    "@xencelabs-quick-keys/core": "npm:1.0.0"
     p-queue: "npm:^6.6.2"
     tslib: "npm:^2.6.2"
   languageName: unknown

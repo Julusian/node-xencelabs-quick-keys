@@ -1,6 +1,6 @@
 {
   "name": "@xencelabs-quick-keys/webhid-demo",
-  "version": "1.0.0-0",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "homepage": "https://github.com/julusian/node-xencelabs-quick-keys#readme",
@@ -20,7 +20,7 @@
     "build": "run g:rimraf dist && cross-env NODE_ENV=production webpack --progress"
   },
   "dependencies": {
-    "@xencelabs-quick-keys/webhid": "1.0.0-0",
+    "@xencelabs-quick-keys/webhid": "1.0.0",
     "buffer": "^6.0.3",
     "classnames": "^2.3.2",
     "react": "^18.2.0",

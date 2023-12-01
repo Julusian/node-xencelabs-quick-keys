@@ -1,6 +1,6 @@
 {
   "name": "@xencelabs-quick-keys/node",
-  "version": "1.0.0-0",
+  "version": "1.0.0",
   "description": "An npm module for interfacing with the Xencelabs Quick Keys in node",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -38,7 +38,7 @@
     "node": ">=18.18"
   },
   "dependencies": {
-    "@xencelabs-quick-keys/core": "1.0.0-0",
+    "@xencelabs-quick-keys/core": "1.0.0",
     "node-hid": "^3.0.0",
     "tslib": "^2.6.2",
     "usb": "^2.11.0"

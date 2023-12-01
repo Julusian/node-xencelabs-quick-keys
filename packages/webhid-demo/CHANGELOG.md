@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.4.0...v1.0.0) (2023-12-01)
+
+**Note:** Version bump only for package @xencelabs-quick-keys/webhid-demo
+
+
+
+
+
 # [0.4.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.4.0-alpha.0...v0.4.0) (2022-01-25)
 
 **Note:** Version bump only for package @xencelabs-quick-keys/webhid-demo

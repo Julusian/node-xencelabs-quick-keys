@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.0.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.4.0...v1.0.0) (2023-12-01)
+
+
+### Bug Fixes
+
+* add tslib as dependency ([2f95eb6](https://github.com/julusian/node-xencelabs-quick-keys/commit/2f95eb6a2cbc15f0b1c9019d657b7470782b7a75))
+
+
+
+
+
 # [0.4.0](https://github.com/julusian/node-xencelabs-quick-keys/compare/v0.4.0-alpha.0...v0.4.0) (2022-01-25)
 
 **Note:** Version bump only for package @xencelabs-quick-keys/webhid
